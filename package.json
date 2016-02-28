@@ -1,0 +1,85 @@
+{
+  "name": "react-data-menu",
+  "version": "1.0.0",
+  "description": "Smart data-driven menu rendered in an overlay",
+  "scripts": {
+    "hot": "node hotServer.js",
+    "start": "npm run hot",
+    "debug:webpack": "NODE_ENV=production webpack --config webpack.config.debug.js",
+    "debug": "rimraf demo && npm run debug:webpack",
+    "demo:webpack": "NODE_ENV=production webpack --config webpack.config.demo.js",
+    "demo": "rimraf demo && npm run demo:webpack",
+    "dist:webpack": "NODE_ENV=production webpack --config webpack.config.dist.js",
+    "dist": "rimraf dist && npm run dist:webpack",
+    "babel": "NODE_ENV=production bash build.sh",
+    "build": "rimraf build && npm run babel",
+    "all": "npm run build && npm run dist && npm run demo",
+    "lint": "eslint src",
+    "test": "karma start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dkozar/react-data-menu.git"
+  },
+  "keywords": [
+    "react",
+    "reactjs",
+    "dom",
+    "element",
+    "node",
+    "popup",
+    "menu",
+    "parent",
+    "render",
+    "different",
+    "div"
+  ],
+  "author": "Danko Kozar <github@dankokozar.com> (http://github.com/dkozar)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dkozar/react-data-menu/issues"
+  },
+  "homepage": "https://github.com/dkozar/react-data-menu#readme",
+  "devDependencies": {
+    "babel-cli": "^6.4.0",
+    "babel-core": "^6.3.15",
+    "babel-eslint": "^5.0.0-beta4",
+    "babel-loader": "^6.2.0",
+    "babel-preset-es2015": "^6.3.13",
+    "babel-preset-react": "^6.3.13",
+    "babel-preset-react-hmre": "^1.0.0",
+    "css-loader": "^0.23.1",
+    "d3": "^3.5.14",
+    "eslint": "^1.10.3",
+    "eslint-plugin-babel": "^3.0.0",
+    "eslint-plugin-react": "^3.11.3",
+    "eventsource-polyfill": "^0.9.6",
+    "express": "^4.13.3",
+    "extract-text-webpack-plugin": "^1.0.1",
+    "karma": "^0.13.21",
+    "karma-chrome-launcher": "^0.2.2",
+    "karma-cli": "^0.1.2",
+    "karma-mocha": "^0.2.2",
+    "karma-sourcemap-loader": "^0.3.7",
+    "karma-webpack": "^1.7.0",
+    "mocha": "^2.4.5",
+    "react-addons-test-utils": "^0.14.7",
+    "react-wrappy-text": "^1.0.7",
+    "rimraf": "^2.4.3",
+    "style-loader": "^0.13.0",
+    "webpack": "^1.12.9",
+    "webpack-dev-middleware": "^1.4.0",
+    "webpack-hot-middleware": "^2.6.0"
+  },
+  "dependencies": {
+    "classnames": "^2.2.3",
+    "lodash": "^4.0.0",
+    "react": "^0.14.3",
+    "react-dom": "^0.14.3",
+    "react-liberator": "^1.0.11"
+  },
+  "precommit": [
+    "lint",
+    "test"
+  ]
+}

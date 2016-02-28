@@ -1,0 +1,105 @@
+.drop-down {
+    display: inline-block;
+}
+
+.menu-button {
+    color: white;
+    background-color: #2ead6d;
+    border: 0;
+    padding: 20px 25px;
+    font-size: 30px;
+    transition: background-color 150ms ease-in;
+}
+
+.menu-button:hover {
+    background-color: #5943aa;
+    transition: background-color 150ms ease-in;
+}
+
+.menu-popup {
+    display: inline-block;
+    white-space: nowrap;
+    background-color: #6699CC;
+    border-radius: 10px 10px 10px 10px;
+    -moz-border-radius: 10px 10px 10px 10px;
+    -webkit-border-radius: 10px 10px 10px 10px;
+    padding: 10px 0 10px 0;
+    opacity: 0;
+    box-shadow: 15px 15px 0 rgba(0, 0, 0, 0.35);
+}
+
+.menu-popup.showing {
+    opacity: 1;
+    transition:opacity 150ms ease-in;
+}
+
+.menu-item {
+    display: block;
+    width: 100%;
+    color: white;
+    background-color: #6699cc;
+    padding: 15px 25px;
+    font-size: 30px;
+    border: 0;
+}
+
+.menu-item-button {
+    transition: background-color 150ms ease-in;
+}
+
+.menu-item-button.menu-item-selected {
+    background-color: #5943aa;
+    transition: background-color 150ms ease-in;
+}
+
+.menu-item-label {
+    font-weight: normal;
+    font-style: italic;
+    padding: 10px 20px 10px 20px;
+}
+
+.menu-item-separator {
+    border: 0;
+    height: 0;
+    width: auto;
+    border-bottom: 4px dotted rgba(255, 255, 255, 0.35);
+    padding: 0;
+    margin: 10px 0;
+}
+
+.menu-item:focus {
+    outline:0;
+}
+
+.menu-item span {
+    float: left;
+}
+
+.menu-item.menu-item-expandable {
+    padding-right: 0;
+}
+
+.menu-item-button {
+    line-height: 40px;
+}
+
+.menu-item-button:hover {
+    background-color: #5943aa;
+    transition: background-color 150ms ease-in;
+}
+
+.menu-item-button span {
+    line-height: inherit;
+}
+
+.menu-item-link a {
+    color: #ffcc00;
+}
+
+.fa.fa-chevron-right {
+    float: right;
+    line-height: inherit;
+    margin-left: 15px;
+    padding-right: 5px;
+    font-size: 0.5em;
+}
