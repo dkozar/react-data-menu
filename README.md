@@ -21,6 +21,7 @@ http://dkozar.github.io/react-data-menu/
 ```js
 // ES6
 import React, { Component } from 'react';
+import { LinkRenderer } from './renderers/LinkRenderer.js';
 import { Menu } from 'react-data-menu';
 
 export class App extends Component {
