@@ -1,6 +1,6 @@
 {
   "name": "react-data-menu",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Smart data-driven menu rendered in an overlay",
   "scripts": {
     "hot": "node hotServer.js",
@@ -13,7 +13,7 @@
     "dist": "rimraf dist && npm run dist:webpack",
     "babel": "NODE_ENV=production bash build.sh",
     "build": "rimraf build && npm run babel",
-    "all": "npm run build && npm run dist && npm run demo",
+    "all": "npm run lint && npm run build && npm run dist && npm run demo",
     "lint": "eslint src",
     "test": "karma start"
   },

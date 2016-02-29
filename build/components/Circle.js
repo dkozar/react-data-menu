@@ -9,6 +9,10 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
 var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
@@ -35,7 +39,8 @@ var Circle = exports.Circle = function (_Component) {
         _this.onMouseOut = _this.onMouseOut.bind(_this);
 
         _this.state = {
-            strokeWidth: 0
+            strokeWidth: _this.props.selected ? 5 : 0,
+            hovered: false
         };
         return _this;
     }
@@ -44,29 +49,33 @@ var Circle = exports.Circle = function (_Component) {
         key: 'onMouseOver',
         value: function onMouseOver() {
             this.setState({
-                //r: this.props.r,
-                strokeWidth: 5
+                hovered: true
             });
         }
     }, {
         key: 'onMouseOut',
         value: function onMouseOut() {
             this.setState({
-                //r: this.props.r,
-                strokeWidth: 0
+                hovered: false
             });
+        }
+    }, {
+        key: 'getStroke',
+        value: function getStroke() {
+            return {
+                strokeWidth: this.props.selected || this.state.hovered ? 5 : 0,
+                stroke: this.state.hovered ? this.props.strokeColorHovered : this.props.strokeColorSelected
+            };
         }
     }, {
         key: 'render',
         value: function render() {
-            var d = {
+            var d = _lodash2.default.assign({
                 cx: this.props.x,
                 cy: this.props.y,
                 r: this.props.r,
-                stroke: this.props.strokeColor,
-                strokeWidth: this.state.strokeWidth,
                 fill: this.props.color
-            };
+            }, this.getStroke());
 
             return _react2.default.createElement('circle', _extends({}, d, {
                 onContextMenu: this.props.onContextMenu,
@@ -78,5 +87,13 @@ var Circle = exports.Circle = function (_Component) {
     return Circle;
 }(_react.Component);
 
-Circle.propTypes = { strokeColor: _react2.default.PropTypes.string };
-Circle.defaultProps = { strokeColor: 'white' };
+Circle.propTypes = {
+    strokeColorSelected: _react2.default.PropTypes.string,
+    strokeColorHovered: _react2.default.PropTypes.string,
+    selected: _react2.default.PropTypes.bool
+};
+Circle.defaultProps = {
+    strokeColorSelected: 'white',
+    strokeColorHovered: 'white',
+    selected: false
+};

@@ -39,7 +39,7 @@ export class App extends Component {
                     x: 800, y: 500, r: 150, color: ORANGE
                 }
             ],
-            current: 0
+            current: -1
         };
 
         this.onCircleMenu = this.onCircleMenu.bind(this);
@@ -54,7 +54,7 @@ export class App extends Component {
         });
     }
 
-    onAnywhereClickOrContextMenu() {
+    onAnywhereClickOrContextMenu(e) {
         this.setState({
             openOnMouseOver: false
         });
@@ -85,7 +85,8 @@ export class App extends Component {
 
     onMenuClose() {
         this.setState({
-            showMenu: false
+            showMenu: false,
+            current: -1
         });
     }
     //</editor-fold>
@@ -197,8 +198,9 @@ export class App extends Component {
             circles = this.state.circles.map(function (circle) {
                 return (
                     <Circle {...circle} key={'circle-' + index} strokeColor='white'
-                                                   onContextMenu={self.onCircleMenu.bind(this, index++)}
-                                                   onMenuClose={self.onMenuClose} />
+                                        selected={self.state.current === index}
+                                        onContextMenu={self.onCircleMenu.bind(this, index++)}
+                                        onMenuClose={self.onMenuClose} />
                 );
             }),
             renderers = {

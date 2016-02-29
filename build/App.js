@@ -76,7 +76,7 @@ var App = exports.App = function (_Component) {
             }, {
                 x: 800, y: 500, r: 150, color: ORANGE
             }],
-            current: 0
+            current: -1
         };
 
         _this.onCircleMenu = _this.onCircleMenu.bind(_this);
@@ -94,7 +94,7 @@ var App = exports.App = function (_Component) {
 
     _createClass(App, [{
         key: 'onAnywhereClickOrContextMenu',
-        value: function onAnywhereClickOrContextMenu() {
+        value: function onAnywhereClickOrContextMenu(e) {
             this.setState({
                 openOnMouseOver: false
             });
@@ -131,7 +131,8 @@ var App = exports.App = function (_Component) {
         key: 'onMenuClose',
         value: function onMenuClose() {
             this.setState({
-                showMenu: false
+                showMenu: false,
+                current: -1
             });
         }
         //</editor-fold>
@@ -253,6 +254,7 @@ var App = exports.App = function (_Component) {
                 menu = this.state.showMenu ? _react2.default.createElement(_Menu.Menu, { items: this.state.items, position: this.menuPosition, onClose: this.onMenuClose }) : null,
                 circles = this.state.circles.map(function (circle) {
                 return _react2.default.createElement(_Circle.Circle, _extends({}, circle, { key: 'circle-' + index, strokeColor: 'white',
+                    selected: self.state.current === index,
                     onContextMenu: self.onCircleMenu.bind(this, index++),
                     onMenuClose: self.onMenuClose }));
             }),

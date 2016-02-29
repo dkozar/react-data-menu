@@ -286,7 +286,7 @@ export class Menu extends Component {
     }
 
     /**
-     * Removes popups starting with index sets the state
+     * Removes popups with index greater than or equal to startIndex
      * @param startIndex
      * @param callback
      */

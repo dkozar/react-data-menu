@@ -8,7 +8,7 @@ Smart data-driven menu rendered in an overlay.
 
 Hints-based aligning with custom renderers and factories.
 
-Never again clipped by other components or screen edges.
+Never clipped by other components or screen edges.
 
 [![Data Menu!](http://dankokozar.com/images/react-data-menu.png)](http://dkozar.github.io/react-data-menu/)
 
@@ -23,6 +23,10 @@ http://dkozar.github.io/react-data-menu/
 import React, { Component } from 'react';
 import { LinkRenderer } from './renderers/LinkRenderer.js';
 import { Menu } from 'react-data-menu';
+
+function callback(item) {
+    console.log('item clicked', item);
+}
 
 export class App extends Component {
 
@@ -58,7 +62,7 @@ export class App extends Component {
                  title: 'Give me stars!',
                  url: 'https://github.com/dkozar/react-data-menu/stargazers',
                  target: '_blank'
-             }];
+            }];
         };
     }
 

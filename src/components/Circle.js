@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import React, { Component } from 'react';
 import { items1 } from './../data/items1.js';
 
@@ -10,33 +11,37 @@ export class Circle extends Component {
         this.onMouseOut = this.onMouseOut.bind(this);
 
         this.state = {
-            strokeWidth: 0
+            strokeWidth: this.props.selected ? 5 : 0,
+            hovered: false
         }
     }
 
     onMouseOver() {
         this.setState({
-            //r: this.props.r,
-            strokeWidth: 5
+            hovered: true
         });
     }
 
     onMouseOut() {
         this.setState({
-            //r: this.props.r,
-            strokeWidth: 0
+            hovered: false
         });
     }
 
+    getStroke() {
+        return {
+            strokeWidth: (this.props.selected || this.state.hovered) ? 5 : 0,
+            stroke: this.state.hovered ? this.props.strokeColorHovered : this.props.strokeColorSelected
+        }
+    }
+
     render() {
-        var d = {
+        var d = _.assign({
             cx: this.props.x,
             cy: this.props.y,
             r: this.props.r,
-            stroke: this.props.strokeColor,
-            strokeWidth: this.state.strokeWidth,
             fill: this.props.color
-        };
+        }, this.getStroke());
 
         return (
             <circle {...d}
@@ -46,5 +51,13 @@ export class Circle extends Component {
         );
     }
 }
-Circle.propTypes = { strokeColor: React.PropTypes.string };
-Circle.defaultProps = { strokeColor: 'white' };
+Circle.propTypes = {
+    strokeColorSelected: React.PropTypes.string,
+    strokeColorHovered: React.PropTypes.string,
+    selected: React.PropTypes.bool
+};
+Circle.defaultProps = {
+    strokeColorSelected: 'white',
+    strokeColorHovered: 'white',
+    selected: false
+};

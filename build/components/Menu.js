@@ -358,7 +358,7 @@ var Menu = exports.Menu = function (_Component) {
         }
 
         /**
-         * Removes popups starting with index sets the state
+         * Removes popups with index greater than or equal to startIndex
          * @param startIndex
          * @param callback
          */
