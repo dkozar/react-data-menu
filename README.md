@@ -16,6 +16,10 @@ Never clipped by other components or screen edges.
 
 http://dkozar.github.io/react-data-menu/
 
+## :tv: Video
+
+https://www.youtube.com/watch?v=TvtC0xsn6ig
+
 ## :zap: Usage
 
 ```js
