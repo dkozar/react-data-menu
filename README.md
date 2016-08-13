@@ -169,3 +169,5 @@ Runs the tests.
 ## :thumbsup: Thanks to:
 
 :rocket: [React Transform Boilerplate](https://github.com/gaearon/react-transform-boilerplate) for the workflow.
+
+[![Downloads!](https://nodei.co/npm-dl/react-data-menu.png?months=1)](https://www.npmjs.com/package/react-data-menu)
