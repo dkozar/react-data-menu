@@ -266,7 +266,7 @@ var App = exports.App = function (_Component) {
                 renderers: renderers,
                 onOpen: function onOpen() {
                     self.setState({
-                        openOnMouseOver: true
+                        openOnMouseOver: true // let's have the Mac-like behaviour. Once the first dropdown is open by clicking, consequent open on mouse-over.
                     });
                 }
             };

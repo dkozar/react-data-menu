@@ -72,7 +72,7 @@ var items1 = exports.items1 = [{
     title: 'Leaf item'
 }, '-', {
     type: 'link',
-    title: 'Give me stars!',
+    title: 'Give me the stars!',
     url: 'https://github.com/dkozar/react-data-menu/stargazers',
     target: '_blank'
 }];

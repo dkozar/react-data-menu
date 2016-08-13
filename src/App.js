@@ -211,7 +211,7 @@ export class App extends Component {
                 renderers,
                 onOpen() {
                     self.setState({
-                        openOnMouseOver: true
+                        openOnMouseOver: true // let's have the Mac-like behaviour. Once the first dropdown is open by clicking, consequent open on mouse-over.
                     });
                 }
             };

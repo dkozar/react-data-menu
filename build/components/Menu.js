@@ -52,7 +52,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 //</editor-fold>
 
-var DEFAULT_LAYER_ID = '___menu___';
+var DEFAULT_LAYER_ID = '___react-data-menu___';
 
 var MOUSE_LEAVE_DELAY = 100,
     MOUSE_ENTER_DELAY = 200,
@@ -69,6 +69,8 @@ var MOUSE_LEAVE_DELAY = 100,
     return !level ? this.props.alignTo || this.props.position : this.hoverData ? this.hoverData.getElement() : null;
 };
 
+// references to all the open menu instances
+// usually only the single instance, since by default we're allowing only a single menu on screen (we're auto-closing others)
 var instances = [];
 
 var Menu = exports.Menu = function (_Component) {
@@ -84,15 +86,12 @@ var Menu = exports.Menu = function (_Component) {
         _this.onItemMouseLeave = _this.onItemMouseLeave.bind(_this);
         _this.onItemMouseEnter = _this.onItemMouseEnter.bind(_this);
         _this.closeMenu = _this.closeMenu.bind(_this);
-        _this.closeMenuDeferred = function () {
-            _lodash2.default.defer(this.closeMenu);
-        };
         _this.onAnywhereClickOrContextMenu = _this.onAnywhereClickOrContextMenu.bind(_this);
         _this.createPopup = _this.createPopup.bind(_this);
         _this.removeChildPopups = _this.removeChildPopups.bind(_this);
         _this.removePopups = _this.removePopups.bind(_this);
 
-        // debouncing: we don't want the child popup to open immediately
+        // debouncing: we don't want the child popup to open/close immediately
         _this.processInActionDebounced = _lodash2.default.debounce(_this.processInAction.bind(_this), MOUSE_ENTER_DELAY);
         _this.processOutActionDebounced = _lodash2.default.debounce(_this.processOutAction.bind(_this), MOUSE_LEAVE_DELAY);
 
@@ -107,12 +106,6 @@ var Menu = exports.Menu = function (_Component) {
 
         _this.hoverData = null;
 
-        if (props.autoCloseInstances) {
-            _this.closeOtherMenuInstances();
-        }
-
-        //instances.push(this); // BUG with closeOtherMenuInstances
-
         _this.handlers = {
             onAnywhereClick: _this.onAnywhereClickOrContextMenu,
             onAnywhereContextMenu: _this.onAnywhereClickOrContextMenu,
@@ -123,7 +116,7 @@ var Menu = exports.Menu = function (_Component) {
     }
 
     /**
-     * Only a single instance menu instance should be visible on screen
+     * Only a single menu instance should be visible on screen
      * Instances do close on window click, however they might get instantiated by other means
      * (mouse-over the drop-down button etc.)
      */
@@ -132,16 +125,22 @@ var Menu = exports.Menu = function (_Component) {
     _createClass(Menu, [{
         key: 'closeOtherMenuInstances',
         value: function closeOtherMenuInstances() {
+            var self = this;
+
             _lodash2.default.forEach(instances, function (instance) {
-                instance.closeMenuDeferred();
+                if (instance !== self) {
+                    instance.closeMenu();
+                }
             });
             instances = [];
         }
     }, {
         key: 'removeInstance',
         value: function removeInstance() {
+            var self = this;
+
             _lodash2.default.remove(instances, function (instance) {
-                return this === instance;
+                return self === instance;
             });
         }
 
@@ -209,11 +208,13 @@ var Menu = exports.Menu = function (_Component) {
         value: function onItemMouseLeave(hoverData) {
             this.hoverData = null;
             this.processOutActionDebounced(hoverData);
+            this.props.onItemMouseLeave(hoverData);
         }
     }, {
         key: 'onItemMouseEnter',
         value: function onItemMouseEnter(hoverData) {
             this.processInActionDebounced(hoverData, false);
+            this.props.onItemMouseEnter(hoverData);
         }
     }, {
         key: 'onItemClick',
@@ -223,6 +224,7 @@ var Menu = exports.Menu = function (_Component) {
                 // leaf node
                 this.closeMenu();
             }
+            this.props.onItemClick(hoverData);
         }
         //</editor-fold>
 
@@ -431,7 +433,11 @@ var Menu = exports.Menu = function (_Component) {
     }, {
         key: 'componentDidMount',
         value: function componentDidMount() {
+            if (this.props.autoCloseOtherMenuInstances) {
+                this.closeOtherMenuInstances();
+            }
             this.setMenuVisibility(true);
+            instances.push(this); // BUG with closeOtherMenuInstances
         }
     }, {
         key: 'componentWillUnmount',
@@ -478,9 +484,7 @@ var Menu = exports.Menu = function (_Component) {
     }, {
         key: 'getPopup',
         value: function getPopup(popupId) {
-            var self = this;
-
-            return _lodash2.default.find(self.state.popups, function (popup) {
+            return _lodash2.default.find(this.state.popups, function (popup) {
                 return popup.id === popupId;
             });
         }
@@ -523,27 +527,33 @@ var Menu = exports.Menu = function (_Component) {
 
 
 Menu.propTypes = {
-    items: _react2.default.PropTypes.array.isRequired,
-    renderers: _react2.default.PropTypes.object,
+    items: _react2.default.PropTypes.array.isRequired, // menu items (data)
+    renderers: _react2.default.PropTypes.object, // item renderers
     mouseEnterDelay: _react2.default.PropTypes.number,
     mouseLeaveDelay: _react2.default.PropTypes.number,
-    autoCloseInstances: _react2.default.PropTypes.bool,
+    autoCloseOtherMenuInstances: _react2.default.PropTypes.bool, // should opening of a menu close other, currently open menu instances
     onOpen: _react2.default.PropTypes.func,
     onClose: _react2.default.PropTypes.func,
+    onItemMouseEnter: _react2.default.PropTypes.func,
+    onItemMouseLeave: _react2.default.PropTypes.func,
+    onItemClick: _react2.default.PropTypes.func,
     hints: _react2.default.PropTypes.func,
     alignToFunc: _react2.default.PropTypes.func,
     layer: _react2.default.PropTypes.node,
     layerId: _react2.default.PropTypes.string,
-    autoCleanup: _react2.default.PropTypes.bool
+    autoCleanup: _react2.default.PropTypes.bool // Liberator's empty layer auto cleanup
 };
 Menu.defaultProps = {
     items: [],
     aligner: new ALIGNER(),
     mouseEnterDelay: MOUSE_ENTER_DELAY,
     mouseLeaveDelay: MOUSE_LEAVE_DELAY,
-    autoCloseInstances: true,
+    autoCloseOtherMenuInstances: true,
     onOpen: function onOpen() {},
     onClose: function onClose() {},
+    onItemMouseEnter: function onItemMouseEnter() {},
+    onItemMouseLeave: function onItemMouseLeave() {},
+    onItemClick: function onItemClick() {},
 
     hints: HINTS,
     alignToFunc: ALIGN_TO,

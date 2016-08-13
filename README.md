@@ -63,7 +63,7 @@ export class App extends Component {
                 title: 'Menu item 1-2'
             }, '-', {
                  type: 'link',
-                 title: 'Give me stars!',
+                 title: 'Give me the stars!',
                  url: 'https://github.com/dkozar/react-data-menu/stargazers',
                  target: '_blank'
             }];

@@ -14,7 +14,7 @@ import { Label } from './../renderers/LabelRenderer.js';
 import { Separator } from './../renderers/SeparatorRenderer.js';
 //</editor-fold>
 
-const DEFAULT_LAYER_ID = '___menu___';
+const DEFAULT_LAYER_ID = '___react-data-menu___';
 
 const MOUSE_LEAVE_DELAY = 100,
     MOUSE_ENTER_DELAY = 200,
@@ -35,6 +35,8 @@ const MOUSE_LEAVE_DELAY = 100,
                 null);
     };
 
+// references to all the open menu instances
+// usually only the single instance, since by default we're allowing only a single menu on screen (we're auto-closing others)
 var instances = [];
 
 export class Menu extends Component {
@@ -47,15 +49,12 @@ export class Menu extends Component {
         this.onItemMouseLeave = this.onItemMouseLeave.bind(this);
         this.onItemMouseEnter = this.onItemMouseEnter.bind(this);
         this.closeMenu = this.closeMenu.bind(this);
-        this.closeMenuDeferred = function () {
-            _.defer(this.closeMenu);
-        };
         this.onAnywhereClickOrContextMenu = this.onAnywhereClickOrContextMenu.bind(this);
         this.createPopup = this.createPopup.bind(this);
         this.removeChildPopups = this.removeChildPopups.bind(this);
         this.removePopups = this.removePopups.bind(this);
 
-        // debouncing: we don't want the child popup to open immediately
+        // debouncing: we don't want the child popup to open/close immediately
         this.processInActionDebounced = _.debounce(this.processInAction.bind(this), MOUSE_ENTER_DELAY);
         this.processOutActionDebounced = _.debounce(this.processOutAction.bind(this), MOUSE_LEAVE_DELAY);
 
@@ -70,12 +69,6 @@ export class Menu extends Component {
 
         this.hoverData = null;
 
-        if (props.autoCloseInstances) {
-            this.closeOtherMenuInstances();
-        }
-
-        //instances.push(this); // BUG with closeOtherMenuInstances
-
         this.handlers = {
             onAnywhereClick: this.onAnywhereClickOrContextMenu,
             onAnywhereContextMenu: this.onAnywhereClickOrContextMenu,
@@ -85,20 +78,26 @@ export class Menu extends Component {
     }
 
     /**
-     * Only a single instance menu instance should be visible on screen
+     * Only a single menu instance should be visible on screen
      * Instances do close on window click, however they might get instantiated by other means
      * (mouse-over the drop-down button etc.)
      */
     closeOtherMenuInstances() {
+        var self = this;
+
         _.forEach(instances, function(instance) {
-            instance.closeMenuDeferred();
+            if (instance !== self) {
+                instance.closeMenu();
+            }
         });
         instances = [];
     }
 
     removeInstance() {
+        var self = this;
+
         _.remove(instances, function(instance) {
-            return this === instance;
+            return self === instance;
         });
     }
 
@@ -153,10 +152,12 @@ export class Menu extends Component {
     onItemMouseLeave(hoverData) {
         this.hoverData = null;
         this.processOutActionDebounced(hoverData);
+        this.props.onItemMouseLeave(hoverData);
     }
 
     onItemMouseEnter(hoverData) {
         this.processInActionDebounced(hoverData, false);
+        this.props.onItemMouseEnter(hoverData);
     }
 
     onItemClick(hoverData) {
@@ -164,6 +165,7 @@ export class Menu extends Component {
         if (hoverData.isLeafNode() && !hoverData.isPersistant()) { // leaf node
             this.closeMenu();
         }
+        this.props.onItemClick(hoverData);
     }
     //</editor-fold>
 
@@ -352,7 +354,11 @@ export class Menu extends Component {
     }
 
     componentDidMount() {
+        if (this.props.autoCloseOtherMenuInstances) {
+            this.closeOtherMenuInstances();
+        }
         this.setMenuVisibility(true);
+        instances.push(this); // BUG with closeOtherMenuInstances
     }
 
     componentWillUnmount() {
@@ -391,9 +397,7 @@ export class Menu extends Component {
      * @returns {*}
      */
     getPopup(popupId) {
-        var self = this;
-
-        return _.find(self.state.popups, function(popup) {
+        return _.find(this.state.popups, function(popup) {
             return popup.id === popupId;
         });
     }
@@ -425,27 +429,33 @@ export class Menu extends Component {
 
 //<editor-fold desc="Props">
 Menu.propTypes = {
-    items: React.PropTypes.array.isRequired,
-    renderers: React.PropTypes.object,
+    items: React.PropTypes.array.isRequired, // menu items (data)
+    renderers: React.PropTypes.object, // item renderers
     mouseEnterDelay: React.PropTypes.number,
     mouseLeaveDelay: React.PropTypes.number,
-    autoCloseInstances: React.PropTypes.bool,
+    autoCloseOtherMenuInstances: React.PropTypes.bool, // should opening of a menu close other, currently open menu instances
     onOpen: React.PropTypes.func,
     onClose: React.PropTypes.func,
+    onItemMouseEnter: React.PropTypes.func,
+    onItemMouseLeave: React.PropTypes.func,
+    onItemClick: React.PropTypes.func,
     hints: React.PropTypes.func,
     alignToFunc: React.PropTypes.func,
     layer: React.PropTypes.node,
     layerId: React.PropTypes.string,
-    autoCleanup: React.PropTypes.bool
+    autoCleanup: React.PropTypes.bool // Liberator's empty layer auto cleanup
 };
 Menu.defaultProps = {
     items: [],
     aligner: new ALIGNER(),
     mouseEnterDelay: MOUSE_ENTER_DELAY,
     mouseLeaveDelay: MOUSE_LEAVE_DELAY,
-    autoCloseInstances: true,
+    autoCloseOtherMenuInstances: true,
     onOpen() {},
     onClose() {},
+    onItemMouseEnter() {},
+    onItemMouseLeave() {},
+    onItemClick() {},
     hints: HINTS,
     alignToFunc: ALIGN_TO,
     layer: null,

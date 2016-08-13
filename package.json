@@ -1,6 +1,6 @@
 {
   "name": "react-data-menu",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Smart data-driven menu rendered in an overlay",
   "scripts": {
     "hot": "node hotServer.js",
