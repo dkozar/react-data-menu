@@ -55,7 +55,7 @@ var items1 = exports.items1 = [{
     items: [{
         title: 'Failure',
         callback: function callback(e) {
-            console.log('*** Failure clicked: ' + e);
+            console.log('*** Failure clicked', e);
         }
     }, '-', {
         title: 'Teaches',
@@ -66,7 +66,7 @@ var items1 = exports.items1 = [{
         title: 'Success'
     }],
     callback: function callback(e) {
-        console.log('*** Option 1 clicked: ' + e);
+        console.log('*** Option 1 clicked', e);
     }
 }, {
     title: 'Leaf item'

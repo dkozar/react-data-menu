@@ -50,7 +50,7 @@ export const items1 = [{
     items: [{
         title: 'Failure',
         callback(e) {
-            console.log('*** Failure clicked: ' + e);
+            console.log('*** Failure clicked', e);
         }
     }, '-', {
         title: 'Teaches',
@@ -61,7 +61,7 @@ export const items1 = [{
         title: 'Success'
     }],
     callback(e) {
-        console.log('*** Option 1 clicked: ' + e);
+        console.log('*** Option 1 clicked', e);
     }
 }, {
     title: 'Leaf item'
