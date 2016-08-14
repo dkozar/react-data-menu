@@ -9,6 +9,7 @@ export class Circle extends Component {
 
         this.onMouseOver = this.onMouseOver.bind(this);
         this.onMouseOut = this.onMouseOut.bind(this);
+        this.onTouchStart = this.onTouchStart.bind(this);
 
         this.state = {
             strokeWidth: this.props.selected ? 5 : 0,
@@ -20,6 +21,13 @@ export class Circle extends Component {
         this.setState({
             hovered: true
         });
+    }
+
+    onTouchStart(e) {
+        this.setState({
+            hovered: true
+        });
+        this.props.onTouchStart(e);
     }
 
     onMouseOut() {
@@ -46,6 +54,7 @@ export class Circle extends Component {
         return (
             <circle {...d}
                 onContextMenu={this.props.onContextMenu}
+                onTouchStart={this.onTouchStart}
                 onMouseOver={this.onMouseOver}
                 onMouseOut={this.onMouseOut} />
         );
@@ -54,10 +63,14 @@ export class Circle extends Component {
 Circle.propTypes = {
     strokeColorSelected: React.PropTypes.string,
     strokeColorHovered: React.PropTypes.string,
-    selected: React.PropTypes.bool
+    selected: React.PropTypes.bool,
+    onContextMenu: React.PropTypes.func,
+    onTouchStart: React.PropTypes.func
 };
 Circle.defaultProps = {
     strokeColorSelected: 'white',
     strokeColorHovered: 'white',
-    selected: false
+    selected: false,
+    onContextMenu() {},
+    onTouchStart() {}
 };

@@ -15,6 +15,8 @@ var _reactDom = require('react-dom');
 
 var _reactDom2 = _interopRequireDefault(_reactDom);
 
+var _Dom = require('./../util/Dom');
+
 var _Menu = require('./Menu');
 
 var _Aligner = require('./../util/Aligner.js');
@@ -30,6 +32,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var classnames = require('classnames');
 
 var MOUSE_ENTER_DELAY = 500,
     MOUSE_LEAVE_DELAY = 100,
@@ -49,6 +53,7 @@ var DropdownMenu = exports.DropdownMenu = function (_Component) {
         var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(DropdownMenu).call(this, props));
 
         _this.onButtonClick = _this.onButtonClick.bind(_this);
+        _this.onButtonTouchStart = _this.onButtonTouchStart.bind(_this);
         _this.onButtonMouseEnter = _this.onButtonMouseEnter.bind(_this);
         _this.onOpen = _this.onOpen.bind(_this);
         _this.onClose = _this.onClose.bind(_this);
@@ -107,6 +112,13 @@ var DropdownMenu = exports.DropdownMenu = function (_Component) {
             this.tryOpenMenu();
         }
     }, {
+        key: 'onButtonTouchStart',
+        value: function onButtonTouchStart(e) {
+            this.tryOpenMenu();
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }, {
         key: 'onButtonMouseEnter',
         value: function onButtonMouseEnter() {
             if (this.props.openOnMouseOver) {
@@ -127,9 +139,10 @@ var DropdownMenu = exports.DropdownMenu = function (_Component) {
         key: 'renderButton',
         value: function renderButton() {
             // render a child passed from the outside, or a default button
-            var children = this.props.children || _react2.default.createElement(
+            var className = classnames('', _Dom.Dom.buildClassNames(this.props.classPrefix, ['menu-button'])),
+                children = this.props.children || _react2.default.createElement(
                 'button',
-                { ref: 'button', className: 'menu-button' },
+                { ref: 'button', className: className },
                 this.props.buttonText
             ),
                 self = this;
@@ -138,6 +151,7 @@ var DropdownMenu = exports.DropdownMenu = function (_Component) {
                 return _react2.default.cloneElement(child, {
                     ref: 'button',
                     onClick: self.onButtonClick,
+                    onTouchStart: self.onButtonTouchStart,
                     onContextMenu: self.onButtonContextMenu,
                     onMouseEnter: self.onButtonMouseEnter
                 });
@@ -146,7 +160,9 @@ var DropdownMenu = exports.DropdownMenu = function (_Component) {
     }, {
         key: 'render',
         value: function render() {
-            var menu = this.state.isOpen ? _react2.default.createElement(_Menu.Menu, {
+            var buttonClassName = classnames(this.props.className, _Dom.Dom.buildClassNames(this.props.classPrefix, ['drop-down'])),
+                menu = this.state.isOpen ? _react2.default.createElement(_Menu.Menu, {
+                classPrefix: this.props.classPrefix,
                 onOpen: this.onOpen,
                 onClose: this.onClose,
                 onItemMouseEnter: this.props.onItemMouseEnter,
@@ -164,7 +180,7 @@ var DropdownMenu = exports.DropdownMenu = function (_Component) {
 
             return _react2.default.createElement(
                 'div',
-                { className: 'drop-down ' + this.props.className },
+                { className: buttonClassName },
                 this.renderButton(),
                 menu
             );
@@ -182,6 +198,7 @@ var DropdownMenu = exports.DropdownMenu = function (_Component) {
 }(_react.Component);
 
 DropdownMenu.propTypes = {
+    classPrefix: _react2.default.PropTypes.string, // CSS class prefix for all the classes used by this dropdown menu
     buttonText: _react2.default.PropTypes.string, // the text of the default button
     openOnMouseOver: _react2.default.PropTypes.bool.isRequired, // should menu be opened on mouse over (Mac menu is opened on first click)
     items: _react2.default.PropTypes.array.isRequired, // menu items (data)
@@ -196,6 +213,7 @@ DropdownMenu.propTypes = {
     onItemClick: _react2.default.PropTypes.func // custom item click handler
 };
 DropdownMenu.defaultProps = {
+    classPrefix: '',
     buttonText: '- Menu -',
     openOnMouseOver: false,
     items: [],

@@ -18,4 +18,21 @@ export class Dom {
         }
         return false;
     }
+
+    /**
+     * @param classPrefix string
+     * @param classNames Array of strings
+     * @returns {{}} Map of class names
+     */
+    static buildClassNames(classPrefix, classNames) {
+        var len = classNames.length,
+            obj = {},
+            i;
+
+        for (i = 0; i < len; i ++) {
+            obj[classPrefix + classNames[i]] = true;
+        }
+
+        return obj;
+    }
 }

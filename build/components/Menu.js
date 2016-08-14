@@ -95,8 +95,8 @@ var Menu = exports.Menu = function (_Component) {
         _this.processInActionDebounced = _lodash2.default.debounce(_this.processInAction.bind(_this), MOUSE_ENTER_DELAY);
         _this.processOutActionDebounced = _lodash2.default.debounce(_this.processOutAction.bind(_this), MOUSE_LEAVE_DELAY);
 
-        _this.popupFactory = new _MenuPopupFactory.MenuPopupFactory();
-        _this.itemFactory = new _MenuItemFactory.MenuItemFactory(_lodash2.default.assign(RENDERERS, props.renderers));
+        _this.popupFactory = new _MenuPopupFactory.MenuPopupFactory(_this.props.classPrefix);
+        _this.itemFactory = new _MenuItemFactory.MenuItemFactory(_lodash2.default.assign(RENDERERS, props.renderers), props.classPrefix);
 
         _this.state = {
             visible: false,
@@ -187,6 +187,7 @@ var Menu = exports.Menu = function (_Component) {
         key: 'onAnywhereClickOrContextMenu',
         value: function onAnywhereClickOrContextMenu(e) {
             var clickedElement = e.target;
+
             if (!this.popupsContain(clickedElement)) {
                 this.closeMenu();
             }
@@ -290,7 +291,7 @@ var Menu = exports.Menu = function (_Component) {
     }, {
         key: 'processInAction',
         value: function processInAction(hoverData, shouldFireCallback) {
-            var childItems;
+            var childItems, popups;
 
             if (!hoverData) {
                 return;
@@ -306,9 +307,9 @@ var Menu = exports.Menu = function (_Component) {
 
             this.removeChildPopups(hoverData.popupId);
 
-            if (this.hoverData !== null && this.hoverData.isSiblingOf(hoverData)) {
-                this.removeChildPopups(hoverData.popupId);
-            }
+            //if (this.hoverData !== null && this.hoverData.isSiblingOf(hoverData)) {
+            //    this.removeChildPopups(hoverData.popupId);
+            //}
 
             // set new hover data
             this.hoverData = hoverData;
@@ -319,7 +320,7 @@ var Menu = exports.Menu = function (_Component) {
                 return;
             }
 
-            var popups = this.createPopup(childItems);
+            popups = this.createPopup(childItems);
             this.setState({
                 popups: popups
             });
@@ -405,6 +406,7 @@ var Menu = exports.Menu = function (_Component) {
                     { key: 'liberator-popup-' + level,
                         layer: self.props.layer, layerId: self.props.layerId, autoCleanup: self.props.autoCleanup },
                     _react2.default.createElement(_MenuPopup.MenuPopup, {
+                        classPrefix: self.props.classPrefix,
                         key: 'menu-popup-' + data.id,
                         popupId: data.id,
                         items: self.state.popups[level].items,
@@ -527,6 +529,7 @@ var Menu = exports.Menu = function (_Component) {
 
 
 Menu.propTypes = {
+    classPrefix: _react2.default.PropTypes.string, // CSS class prefix for all the classes used by this menu
     items: _react2.default.PropTypes.array.isRequired, // menu items (data)
     renderers: _react2.default.PropTypes.object, // item renderers
     mouseEnterDelay: _react2.default.PropTypes.number,
@@ -544,6 +547,7 @@ Menu.propTypes = {
     autoCleanup: _react2.default.PropTypes.bool // Liberator's empty layer auto cleanup
 };
 Menu.defaultProps = {
+    classPrefix: '',
     items: [],
     aligner: new ALIGNER(),
     mouseEnterDelay: MOUSE_ENTER_DELAY,

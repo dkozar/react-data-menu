@@ -1,20 +1,25 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
+
 var classnames = require('classnames');
 
 export class MenuItemFactory {
 
-    constructor(renderers) {
+    constructor(renderers, classPrefix) {
         this.renderers = renderers;
+        this.classPrefix = classPrefix;
     }
 
     createItem(data, key, classes) {
         var isExpandable = !!data.items,
             renderer = this.renderers[data.type],
-            className = classnames(classes, {
-                'menu-item': true,
-                'menu-item-expandable': isExpandable
-            });
+            additions = {},
+            classPrefix = this.classPrefix,
+            className;
+
+            additions[this.classPrefix + 'menu-item'] = true;
+            additions[this.classPrefix + 'menu-item-expandable'] = isExpandable;
+            className = classnames(classes, additions);
 
         if (!renderer) {
             throw 'Undefined renderer for type [' + data.type + ']';
@@ -24,7 +29,8 @@ export class MenuItemFactory {
             data,
             key,
             isExpandable,
-            className
+            className,
+            classPrefix
         });
     }
 }

@@ -1,6 +1,7 @@
 import _ from 'lodash';
 
 var subscribers = [],
+    isTouchInterface = false,
     instance;
 
 export default class MenuEventDispatcher {
@@ -15,6 +16,8 @@ export default class MenuEventDispatcher {
     //</editor-fold>
 
     constructor() {
+        this.onClick = this.onClick.bind(this);
+        this.onTouchStart = this.onTouchStart.bind(this);
         this.onAnywhereClick = this.fireHandlers.bind(this, 'onAnywhereClick');
         this.onAnywhereContextMenu = this.fireHandlers.bind(this, 'onAnywhereContextMenu');
         this.onScreenResize = this.fireHandlers.bind(this, 'onScreenResize');
@@ -60,6 +63,32 @@ export default class MenuEventDispatcher {
         });
     }
 
+    //<editor-fold desc="Click and touch">
+    /**
+     * Fired on document body touch
+     * We're switching to touch mode upon each touch
+     * onClick handler checks if we're in touch mode and does not fire (preventing ghost clicks)
+     * Ghost clicks: http://ariatemplates.com/blog/2014/05/ghost-clicks-in-mobile-browsers/
+     * @param e
+     */
+    onTouchStart(e) {
+        this.onAnywhereClick(e);
+        isTouchInterface = true;
+    }
+
+    /**
+     * Fired on document body click
+     * If we're on touch interface - do nothing
+     * @param e
+     */
+    onClick(e) {
+        if (!isTouchInterface) {
+            this.onAnywhereClick(e);
+        }
+        isTouchInterface = false;
+    }
+    //</editor-fold>
+
     //<editor-fold desc="Browser event subscription">
     handleBrowserEventSubscription(previousCount, nextCount) {
         if (previousCount === 0 && nextCount >= 1) {
@@ -70,14 +99,16 @@ export default class MenuEventDispatcher {
     }
 
     browserSubscribe() {
-        document.body.addEventListener('click', this.onAnywhereClick);
+        document.body.addEventListener('click', this.onClick);
+        document.body.addEventListener('touchstart', this.onTouchStart);
         document.body.addEventListener('contextmenu', this.onAnywhereContextMenu);
         window.addEventListener('resize', this.onScreenResize);
         window.addEventListener('scroll', this.onScroll);
     }
 
     browserUnsubscribe() {
-        document.body.removeEventListener('click', this.onAnywhereClick);
+        document.body.removeEventListener('click', this.onClick);
+        document.body.removeEventListener('touchstart', this.onTouchStart);
         document.body.removeEventListener('contextmenu', this.onAnywhereContextMenu);
         window.removeEventListener('resize', this.onScreenResize);
         window.removeEventListener('scroll', this.onScroll);

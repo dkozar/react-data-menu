@@ -108,12 +108,14 @@ var MenuPopup = exports.MenuPopup = function (_Component) {
                 styles;
 
             children = this.props.items ? this.props.items.map(function (data) {
+                var classes = {};
+
                 key = 'menu-item-' + index;
                 indexMap[key] = index;
 
-                var classes = classnames({
-                    'menu-item-selected': self.state.selectedIndex === index
-                });
+                if (self.state.selectedIndex === index) {
+                    classes[self.props.classPrefix + 'menu-item-selected'] = true;
+                }
 
                 data = self.expandDescriptor(data);
 
@@ -128,7 +130,7 @@ var MenuPopup = exports.MenuPopup = function (_Component) {
                 menuItem = itemFactory.createItem(_lodash2.default.assign({}, data, { // BUG FIX "{}, "
                     id: key,
                     handlers: handlers
-                }), key, classes);
+                }), key, classnames(classes));
 
                 index++;
 
@@ -195,6 +197,7 @@ var MenuPopup = exports.MenuPopup = function (_Component) {
 }(_react.Component);
 
 MenuPopup.propTypes = {
+    classPrefix: _react2.default.PropTypes.string,
     x: _react2.default.PropTypes.number,
     y: _react2.default.PropTypes.number,
     items: _react2.default.PropTypes.arrayOf(_react2.default.PropTypes.oneOfType([_react2.default.PropTypes.object, _react2.default.PropTypes.string])),
@@ -204,6 +207,7 @@ MenuPopup.propTypes = {
     hints: _react2.default.PropTypes.arrayOf(_react2.default.PropTypes.string)
 };
 MenuPopup.defaultProps = {
+    classPrefix: '',
     x: 0,
     y: 0,
     items: [],

@@ -37,6 +37,7 @@ var Circle = exports.Circle = function (_Component) {
 
         _this.onMouseOver = _this.onMouseOver.bind(_this);
         _this.onMouseOut = _this.onMouseOut.bind(_this);
+        _this.onTouchStart = _this.onTouchStart.bind(_this);
 
         _this.state = {
             strokeWidth: _this.props.selected ? 5 : 0,
@@ -51,6 +52,14 @@ var Circle = exports.Circle = function (_Component) {
             this.setState({
                 hovered: true
             });
+        }
+    }, {
+        key: 'onTouchStart',
+        value: function onTouchStart(e) {
+            this.setState({
+                hovered: true
+            });
+            this.props.onTouchStart(e);
         }
     }, {
         key: 'onMouseOut',
@@ -79,6 +88,7 @@ var Circle = exports.Circle = function (_Component) {
 
             return _react2.default.createElement('circle', _extends({}, d, {
                 onContextMenu: this.props.onContextMenu,
+                onTouchStart: this.onTouchStart,
                 onMouseOver: this.onMouseOver,
                 onMouseOut: this.onMouseOut }));
         }
@@ -90,10 +100,14 @@ var Circle = exports.Circle = function (_Component) {
 Circle.propTypes = {
     strokeColorSelected: _react2.default.PropTypes.string,
     strokeColorHovered: _react2.default.PropTypes.string,
-    selected: _react2.default.PropTypes.bool
+    selected: _react2.default.PropTypes.bool,
+    onContextMenu: _react2.default.PropTypes.func,
+    onTouchStart: _react2.default.PropTypes.func
 };
 Circle.defaultProps = {
     strokeColorSelected: 'white',
     strokeColorHovered: 'white',
-    selected: false
+    selected: false,
+    onContextMenu: function onContextMenu() {},
+    onTouchStart: function onTouchStart() {}
 };

@@ -22,10 +22,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var classnames = require('classnames');
 
 var MenuItemFactory = exports.MenuItemFactory = function () {
-    function MenuItemFactory(renderers) {
+    function MenuItemFactory(renderers, classPrefix) {
         _classCallCheck(this, MenuItemFactory);
 
         this.renderers = renderers;
+        this.classPrefix = classPrefix;
     }
 
     _createClass(MenuItemFactory, [{
@@ -33,10 +34,13 @@ var MenuItemFactory = exports.MenuItemFactory = function () {
         value: function createItem(data, key, classes) {
             var isExpandable = !!data.items,
                 renderer = this.renderers[data.type],
-                className = classnames(classes, {
-                'menu-item': true,
-                'menu-item-expandable': isExpandable
-            });
+                additions = {},
+                classPrefix = this.classPrefix,
+                className;
+
+            additions[this.classPrefix + 'menu-item'] = true;
+            additions[this.classPrefix + 'menu-item-expandable'] = isExpandable;
+            className = classnames(classes, additions);
 
             if (!renderer) {
                 throw 'Undefined renderer for type [' + data.type + ']';
@@ -46,7 +50,8 @@ var MenuItemFactory = exports.MenuItemFactory = function () {
                 data: data,
                 key: key,
                 isExpandable: isExpandable,
-                className: className
+                className: className,
+                classPrefix: classPrefix
             });
         }
     }]);

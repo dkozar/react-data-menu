@@ -67,12 +67,14 @@ export class MenuPopup extends Component {
             styles;
 
         children = this.props.items ? this.props.items.map(function (data) {
+            var classes = {};
+
             key = 'menu-item-' + index;
             indexMap[key] = index;
 
-            var classes = classnames({
-                'menu-item-selected': self.state.selectedIndex === index
-            });
+            if (self.state.selectedIndex === index) {
+                classes[self.props.classPrefix + 'menu-item-selected'] = true;
+            }
 
             data = self.expandDescriptor(data);
 
@@ -87,7 +89,7 @@ export class MenuPopup extends Component {
             menuItem = itemFactory.createItem(_.assign({}, data, { // BUG FIX "{}, "
                 id: key,
                 handlers
-            }), key, classes);
+            }), key, classnames(classes));
 
             index ++;
 
@@ -146,6 +148,7 @@ export class MenuPopup extends Component {
     }
 }
 MenuPopup.propTypes = {
+    classPrefix: React.PropTypes.string,
     x: React.PropTypes.number,
     y: React.PropTypes.number,
     items: React.PropTypes.arrayOf(React.PropTypes.oneOfType([React.PropTypes.object, React.PropTypes.string])),
@@ -155,6 +158,7 @@ MenuPopup.propTypes = {
     hints: React.PropTypes.arrayOf(React.PropTypes.string)
 };
 MenuPopup.defaultProps = {
+    classPrefix: '',
     x: 0,
     y: 0,
     items: [],

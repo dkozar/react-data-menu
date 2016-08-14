@@ -60,6 +60,13 @@ var TOOLBAR_HEIGHT = 82,
     YELLOW = '#ffcc00',
     COLORS = [PURPLE, ORANGE, GREEN, RED, YELLOW];
 
+function extractPosition(e) {
+    return {
+        x: e.clientX,
+        y: e.clientY
+    };
+}
+
 var App = exports.App = function (_Component) {
     _inherits(App, _Component);
 
@@ -79,8 +86,10 @@ var App = exports.App = function (_Component) {
             current: -1
         };
 
-        _this.onCircleMenu = _this.onCircleMenu.bind(_this);
-        _this.onAppMenu = _this.onAppMenu.bind(_this);
+        _this.onAppContextMenu = _this.onAppContextMenu.bind(_this);
+        _this.onAppTouchStart = _this.onAppTouchStart.bind(_this);
+        _this.onCircleContextMenu = _this.onCircleContextMenu.bind(_this);
+        _this.onCircleTouchStart = _this.onCircleTouchStart.bind(_this);
         _this.onMenuClose = _this.onMenuClose.bind(_this);
         _this.executeCommand = _this.executeCommand.bind(_this);
         _this.onAnywhereClickOrContextMenu = _this.onAnywhereClickOrContextMenu.bind(_this);
@@ -104,11 +113,8 @@ var App = exports.App = function (_Component) {
 
     }, {
         key: 'showMenu',
-        value: function showMenu(e, items) {
-            this.menuPosition = {
-                x: e.clientX,
-                y: e.clientY
-            };
+        value: function showMenu(e, position, items) {
+            this.menuPosition = position;
             e.preventDefault();
             e.stopPropagation();
             this.setState({
@@ -117,15 +123,26 @@ var App = exports.App = function (_Component) {
             });
         }
     }, {
-        key: 'onAppMenu',
-        value: function onAppMenu(e) {
-            this.showMenu(e, this.appMenuItems);
+        key: 'onAppContextMenu',
+        value: function onAppContextMenu(e) {
+            this.showMenu(e, extractPosition(e), this.appMenuItems);
         }
     }, {
-        key: 'onCircleMenu',
-        value: function onCircleMenu(source, e) {
+        key: 'onAppTouchStart',
+        value: function onAppTouchStart(e) {
+            this.showMenu(e, extractPosition(e.nativeEvent.targetTouches[0]), this.appMenuItems);
+        }
+    }, {
+        key: 'onCircleContextMenu',
+        value: function onCircleContextMenu(source, e) {
             this.state.current = source;
-            this.showMenu(e, this.circleMenuItems);
+            this.showMenu(e, extractPosition(e), this.circleMenuItems);
+        }
+    }, {
+        key: 'onCircleTouchStart',
+        value: function onCircleTouchStart(source, e) {
+            this.state.current = source;
+            this.showMenu(e, extractPosition(e.nativeEvent.targetTouches[0]), this.circleMenuItems);
         }
     }, {
         key: 'onMenuClose',
@@ -247,15 +264,28 @@ var App = exports.App = function (_Component) {
             this.appMenuItems = new _AppMenuItems.AppMenuItems(binder);
         }
     }, {
+        key: 'cancelEvent',
+        value: function cancelEvent(e) {
+            var e = event || window.event;
+            e.preventDefault && e.preventDefault();
+            e.stopPropagation && e.stopPropagation();
+            e.cancelBubble = true;
+            e.returnValue = false;
+            return false;
+        }
+    }, {
         key: 'render',
         value: function render() {
             var self = this,
                 index = 0,
                 menu = this.state.showMenu ? _react2.default.createElement(_Menu.Menu, { items: this.state.items, position: this.menuPosition, onClose: this.onMenuClose }) : null,
                 circles = this.state.circles.map(function (circle) {
+                var circleIndex = index++;
+
                 return _react2.default.createElement(_Circle.Circle, _extends({}, circle, { key: 'circle-' + index, strokeColor: 'white',
                     selected: self.state.current === index,
-                    onContextMenu: self.onCircleMenu.bind(this, index++),
+                    onContextMenu: self.onCircleContextMenu.bind(this, circleIndex),
+                    onTouchStart: self.onCircleTouchStart.bind(this, circleIndex),
                     onMenuClose: self.onMenuClose }));
             }),
                 renderers = {
@@ -273,7 +303,11 @@ var App = exports.App = function (_Component) {
 
             return _react2.default.createElement(
                 'div',
-                { onContextMenu: this.onAppMenu },
+                { onContextMenu: this.onAppContextMenu,
+                    onTouchStart: this.onAppTouchStart,
+                    onTouchEnd: this.cancelEvent,
+                    onTouchCancel: this.cancelEvent,
+                    onTouchMove: this.cancelEvent },
                 _react2.default.createElement(
                     'div',
                     { className: 'toolbar' },

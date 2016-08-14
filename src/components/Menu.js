@@ -58,8 +58,8 @@ export class Menu extends Component {
         this.processInActionDebounced = _.debounce(this.processInAction.bind(this), MOUSE_ENTER_DELAY);
         this.processOutActionDebounced = _.debounce(this.processOutAction.bind(this), MOUSE_LEAVE_DELAY);
 
-        this.popupFactory = new MenuPopupFactory();
-        this.itemFactory = new MenuItemFactory(_.assign(RENDERERS, props.renderers));
+        this.popupFactory = new MenuPopupFactory(this.props.classPrefix);
+        this.itemFactory = new MenuItemFactory(_.assign(RENDERERS, props.renderers), props.classPrefix);
 
         this.state = {
             visible: false,
@@ -135,6 +135,7 @@ export class Menu extends Component {
      */
     onAnywhereClickOrContextMenu(e) {
         var clickedElement = e.target;
+
         if (!this.popupsContain(clickedElement)) {
             this.closeMenu();
         }
@@ -222,7 +223,7 @@ export class Menu extends Component {
      * @param shouldFireCallback
      */
     processInAction(hoverData, shouldFireCallback) {
-        var childItems;
+        var childItems, popups;
 
         if (!hoverData) {
             return;
@@ -238,9 +239,9 @@ export class Menu extends Component {
 
         this.removeChildPopups(hoverData.popupId);
 
-        if (this.hoverData !== null && this.hoverData.isSiblingOf(hoverData)) {
-            this.removeChildPopups(hoverData.popupId);
-        }
+        //if (this.hoverData !== null && this.hoverData.isSiblingOf(hoverData)) {
+        //    this.removeChildPopups(hoverData.popupId);
+        //}
 
         // set new hover data
         this.hoverData = hoverData;
@@ -251,7 +252,7 @@ export class Menu extends Component {
             return;
         }
 
-        var popups = this.createPopup(childItems);
+        popups = this.createPopup(childItems);
         this.setState({
             popups
         });
@@ -315,7 +316,8 @@ export class Menu extends Component {
 
     //<editor-fold desc="Lifecycle">
     render() {
-        var level = 0, self = this,
+        var level = 0,
+            self = this,
             alignTo, hints, popup,
 
             popups = this.state.popups.map(function (data) {
@@ -325,6 +327,7 @@ export class Menu extends Component {
                     <Liberator key={'liberator-popup-' + level}
                                layer={self.props.layer} layerId={self.props.layerId} autoCleanup={self.props.autoCleanup} >
                         <MenuPopup
+                            classPrefix={self.props.classPrefix}
                             key={'menu-popup-' + data.id}
                             popupId={data.id}
                             items={self.state.popups[level].items}
@@ -429,6 +432,7 @@ export class Menu extends Component {
 
 //<editor-fold desc="Props">
 Menu.propTypes = {
+    classPrefix: React.PropTypes.string, // CSS class prefix for all the classes used by this menu
     items: React.PropTypes.array.isRequired, // menu items (data)
     renderers: React.PropTypes.object, // item renderers
     mouseEnterDelay: React.PropTypes.number,
@@ -446,6 +450,7 @@ Menu.propTypes = {
     autoCleanup: React.PropTypes.bool // Liberator's empty layer auto cleanup
 };
 Menu.defaultProps = {
+    classPrefix: '',
     items: [],
     aligner: new ALIGNER(),
     mouseEnterDelay: MOUSE_ENTER_DELAY,

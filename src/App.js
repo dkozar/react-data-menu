@@ -23,6 +23,13 @@ const TOOLBAR_HEIGHT = 82,
     YELLOW = '#ffcc00',
     COLORS = [PURPLE, ORANGE, GREEN, RED, YELLOW];
 
+function extractPosition(e) {
+    return {
+        x: e.clientX,
+        y: e.clientY
+    }
+}
+
 export class App extends Component {
 
     constructor(props) {
@@ -42,8 +49,10 @@ export class App extends Component {
             current: -1
         };
 
-        this.onCircleMenu = this.onCircleMenu.bind(this);
-        this.onAppMenu = this.onAppMenu.bind(this);
+        this.onAppContextMenu = this.onAppContextMenu.bind(this);
+        this.onAppTouchStart = this.onAppTouchStart.bind(this);
+        this.onCircleContextMenu = this.onCircleContextMenu.bind(this);
+        this.onCircleTouchStart = this.onCircleTouchStart.bind(this);
         this.onMenuClose = this.onMenuClose.bind(this);
         this.executeCommand = this.executeCommand.bind(this);
         this.onAnywhereClickOrContextMenu = this.onAnywhereClickOrContextMenu.bind(this);
@@ -61,11 +70,8 @@ export class App extends Component {
     }
 
     //<editor-fold desc="Show/hide menu">
-    showMenu(e, items) {
-        this.menuPosition = {
-            x: e.clientX,
-            y: e.clientY
-        };
+    showMenu(e, position, items) {
+        this.menuPosition = position;
         e.preventDefault();
         e.stopPropagation();
         this.setState({
@@ -74,13 +80,22 @@ export class App extends Component {
         });
     }
 
-    onAppMenu(e) {
-        this.showMenu(e, this.appMenuItems);
+    onAppContextMenu(e) {
+        this.showMenu(e, extractPosition(e), this.appMenuItems);
     }
 
-    onCircleMenu(source, e) {
+    onAppTouchStart(e) {
+        this.showMenu(e, extractPosition(e.nativeEvent.targetTouches[0]), this.appMenuItems);
+    }
+
+    onCircleContextMenu(source, e) {
         this.state.current = source;
-        this.showMenu(e, this.circleMenuItems);
+        this.showMenu(e, extractPosition(e), this.circleMenuItems);
+    }
+
+    onCircleTouchStart(source, e) {
+        this.state.current = source;
+        this.showMenu(e, extractPosition(e.nativeEvent.targetTouches[0]), this.circleMenuItems);
     }
 
     onMenuClose() {
@@ -189,6 +204,15 @@ export class App extends Component {
         this.appMenuItems = new AppMenuItems(binder);
     }
 
+    cancelEvent(e) {
+        var e = event || window.event;
+        e.preventDefault && e.preventDefault();
+        e.stopPropagation && e.stopPropagation();
+        e.cancelBubble = true;
+        e.returnValue = false;
+        return false;
+    }
+
     render() {
         var self = this,
             index = 0,
@@ -196,10 +220,13 @@ export class App extends Component {
                 <Menu items={this.state.items} position={this.menuPosition} onClose={this.onMenuClose} />
             ) : null,
             circles = this.state.circles.map(function (circle) {
+                var circleIndex = index++;
+
                 return (
                     <Circle {...circle} key={'circle-' + index} strokeColor='white'
                                         selected={self.state.current === index}
-                                        onContextMenu={self.onCircleMenu.bind(this, index++)}
+                                        onContextMenu={self.onCircleContextMenu.bind(this, circleIndex)}
+                                        onTouchStart={self.onCircleTouchStart.bind(this, circleIndex)}
                                         onMenuClose={self.onMenuClose} />
                 );
             }),
@@ -217,7 +244,11 @@ export class App extends Component {
             };
 
         return (
-            <div onContextMenu={this.onAppMenu} >
+            <div onContextMenu={this.onAppContextMenu}
+                 onTouchStart={this.onAppTouchStart}
+                 onTouchEnd={this.cancelEvent}
+                 onTouchCancel={this.cancelEvent}
+                 onTouchMove={this.cancelEvent}>
                 <div className='toolbar'>
                     <DropdownMenu buttonText='React Data Menu' items={items1} {...common} />
                     <DropdownMenu buttonText='Example' items={items2} {...common} />
@@ -232,7 +263,7 @@ export class App extends Component {
                 {menu}
 
                 <div className='toolbar toolbar-bottom'>
-                    <DropdownMenu items={items1} {...common} >
+                    <DropdownMenu items={items1} {...common}>
                         <button ref='button' className='menu-button'>
                             Nice menu?
                         </button>

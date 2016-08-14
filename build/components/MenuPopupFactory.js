@@ -13,6 +13,8 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
+var _Dom = require('./../util/Dom');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -20,17 +22,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var classNames = require('classnames');
 
 var MenuPopupFactory = exports.MenuPopupFactory = function () {
-    function MenuPopupFactory() {
+    function MenuPopupFactory(classPrefix) {
         _classCallCheck(this, MenuPopupFactory);
+
+        this.classPrefix = classPrefix;
     }
 
     _createClass(MenuPopupFactory, [{
         key: 'createItem',
         value: function createItem(config) {
-            var className = classNames({
-                'menu-popup': true,
-                'showing': config.showing
-            });
+            var className = classNames(_Dom.Dom.buildClassNames(this.classPrefix, ['menu-popup', 'showing']));
 
             return _react2.default.createElement(
                 'div',
