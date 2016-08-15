@@ -10,7 +10,7 @@ export class MenuPopupFactory {
     }
 
     createItem(config) {
-        var className = classNames(Dom.buildClassNames(this.classPrefix, ['menu-popup', 'showing']));
+        var className = classNames('showing', Dom.buildClassNames(this.classPrefix, ['menu-popup']));
 
         return (
             <div {...config.handlers} id={config.popupId} key={config.popupId} className={className} styles={config.styles}>

@@ -7,6 +7,10 @@ exports.DropdownMenu = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
 var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
@@ -21,10 +25,6 @@ var _Menu = require('./Menu');
 
 var _Aligner = require('./../util/Aligner.js');
 
-var _lodash = require('lodash');
-
-var _lodash2 = _interopRequireDefault(_lodash);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -35,8 +35,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 var classnames = require('classnames');
 
-var MOUSE_ENTER_DELAY = 500,
-    MOUSE_LEAVE_DELAY = 100,
+var MOUSE_ENTER_DELAY = 0,
+    MOUSE_LEAVE_DELAY = 1000,
     ALIGNER = _Aligner.Aligner,
     HINTS = function HINTS(depth) {
     // default hints. Could be overridden via props
@@ -55,6 +55,7 @@ var DropdownMenu = exports.DropdownMenu = function (_Component) {
         _this.onButtonClick = _this.onButtonClick.bind(_this);
         _this.onButtonTouchStart = _this.onButtonTouchStart.bind(_this);
         _this.onButtonMouseEnter = _this.onButtonMouseEnter.bind(_this);
+        _this.onButtonMouseLeave = _this.onButtonMouseLeave.bind(_this);
         _this.onOpen = _this.onOpen.bind(_this);
         _this.onClose = _this.onClose.bind(_this);
         _this.setMenuVisibility = _this.setMenuVisibility.bind(_this);
@@ -74,8 +75,12 @@ var DropdownMenu = exports.DropdownMenu = function (_Component) {
     }, {
         key: 'onClose',
         value: function onClose() {
-            this.hideMenu();
-            this.props.onClose();
+            // if the menu is closed by (this) dropdown menu, isOpen is already false
+            // we don't want to go circular, so short circuit here
+            if (this.state.isOpen) {
+                this.hideMenu();
+                this.props.onClose();
+            }
         }
     }, {
         key: 'hideMenu',
@@ -103,6 +108,13 @@ var DropdownMenu = exports.DropdownMenu = function (_Component) {
             }
             // else do nothing. If the menu is already open, it will close we'were clicking away from it.
         }
+    }, {
+        key: 'tryCloseMenu',
+        value: function tryCloseMenu() {
+            if (this.state.isOpen) {
+                this.hideMenu();
+            }
+        }
 
         //<editor-fold desc="Button handlers">
 
@@ -122,7 +134,14 @@ var DropdownMenu = exports.DropdownMenu = function (_Component) {
         key: 'onButtonMouseEnter',
         value: function onButtonMouseEnter() {
             if (this.props.openOnMouseOver) {
-                this.tryOpenMenu();
+                _lodash2.default.delay(this.tryOpenMenu.bind(this), this.props.mouseEnterDelay);
+            }
+        }
+    }, {
+        key: 'onButtonMouseLeave',
+        value: function onButtonMouseLeave() {
+            if (this.props.closeOnMouseOut) {
+                _lodash2.default.delay(this.tryCloseMenu.bind(this), this.props.mouseLeaveDelay);
             }
         }
     }, {
@@ -153,7 +172,8 @@ var DropdownMenu = exports.DropdownMenu = function (_Component) {
                     onClick: self.onButtonClick,
                     onTouchStart: self.onButtonTouchStart,
                     onContextMenu: self.onButtonContextMenu,
-                    onMouseEnter: self.onButtonMouseEnter
+                    onMouseEnter: self.onButtonMouseEnter,
+                    onMouseLeave: self.onButtonMouseLeave
                 });
             }.bind(this));
         }
@@ -200,7 +220,8 @@ var DropdownMenu = exports.DropdownMenu = function (_Component) {
 DropdownMenu.propTypes = {
     classPrefix: _react2.default.PropTypes.string, // CSS class prefix for all the classes used by this dropdown menu
     buttonText: _react2.default.PropTypes.string, // the text of the default button
-    openOnMouseOver: _react2.default.PropTypes.bool.isRequired, // should menu be opened on mouse over (Mac menu is opened on first click)
+    openOnMouseOver: _react2.default.PropTypes.bool.isRequired, // should menu be opened on mouse over (Mac menu is opened on first *click*)
+    closeOnMouseOut: _react2.default.PropTypes.bool.isRequired, // should menu be closed on mouse over
     items: _react2.default.PropTypes.array.isRequired, // menu items (data)
     autoCloseOtherMenuInstances: _react2.default.PropTypes.bool.isRequired,
     mouseEnterDelay: _react2.default.PropTypes.number,
@@ -216,6 +237,7 @@ DropdownMenu.defaultProps = {
     classPrefix: '',
     buttonText: '- Menu -',
     openOnMouseOver: false,
+    closeOnMouseOut: false,
     items: [],
     aligner: new ALIGNER(),
     autoCloseOtherMenuInstances: true,

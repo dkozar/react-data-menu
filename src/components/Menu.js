@@ -365,8 +365,7 @@ export class Menu extends Component {
     }
 
     componentWillUnmount() {
-        this.setMenuVisibility(false);
-        this.disconnectFromDispatcher();
+        this.closeMenu();
     }
 
     componentWillUpdate(nextProps, nextState) {

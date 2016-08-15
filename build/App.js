@@ -35,7 +35,11 @@ var _items = require('./data/items1.js');
 
 var _items2 = require('./data/items2.js');
 
+var _helpItems = require('./data/helpItems.js');
+
 var _LinkRenderer = require('./renderers/LinkRenderer.js');
+
+var _HelpRenderer = require('./renderers/HelpRenderer.js');
 
 var _MenuEventDispatcher = require('./util/MenuEventDispatcher.js');
 
@@ -321,7 +325,8 @@ var App = exports.App = function (_Component) {
                         _Svg.Svg,
                         { width: '100%', height: '100%' },
                         circles
-                    )
+                    ),
+                    _react2.default.createElement(_TextRotator.TextRotator, null)
                 ),
                 menu,
                 _react2.default.createElement(
@@ -336,7 +341,28 @@ var App = exports.App = function (_Component) {
                             'Nice menu?'
                         )
                     ),
-                    _react2.default.createElement(_TextRotator.TextRotator, null)
+                    _react2.default.createElement(
+                        _DropdownMenu.DropdownMenu,
+                        {
+                            items: _helpItems.helpItems,
+                            className: 'about',
+                            classPrefix: 'help-',
+                            openOnMouseOver: true,
+                            closeOnMouseOut: false,
+                            mouseEnterDelay: 500,
+                            mouseLeaveDelay: 2000,
+                            hints: function hints() {
+                                return ['ne'];
+                            },
+                            renderers: {
+                                'help': _HelpRenderer.HelpRenderer
+                            } },
+                        _react2.default.createElement(
+                            'button',
+                            { ref: 'button', className: 'menu-button' },
+                            '?'
+                        )
+                    )
                 )
             );
         }

@@ -58,6 +58,7 @@ circle.purple {
     color: #ffcc00;
     font-size: 30px;
     line-height: 82px;
+    bottom: 10px;
     right: 20px;
 }
 
@@ -85,4 +86,52 @@ circle.purple {
 .toolbar-bottom {
     position: absolute;
     bottom: 0;
+}
+
+/* Help popup */
+.help-drop-down {
+    display: inline-block;
+    float: right;
+}
+.help-menu-popup {
+    display: inline-block;
+    white-space: nowrap;
+    background-color: #e31d65;
+    border-radius: 10px 10px 10px 10px;
+    -moz-border-radius: 10px 10px 10px 10px;
+    -webkit-border-radius: 10px 10px 10px 10px;
+    padding: 10px 0 10px 0;
+    opacity: 0;
+    box-shadow: 15px 15px 0 rgba(0, 0, 0, 0.35);
+}
+.help-menu-popup.showing {
+    opacity: 1;
+    transition:opacity 150ms ease-in;
+}
+.menu-item-help {
+    font-weight: normal;
+    padding: 10px 20px 10px 20px;
+    color: white;
+    background-color: #e31d65;
+    font-size: 30px;
+}
+.menu-item-help-title {
+    font-weight: normal;
+    font-style: normal;
+    padding: 10px 20px 10px 20px;
+}
+.menu-item-help-text {
+    font-weight: normal;
+    font-style: italic;
+    padding: 10px 20px 10px 20px;
+}
+.menu-item-help-text a {
+    color: #ffcc00;
+}
+.menu-item-help-copyright {
+    font-weight: normal;
+    padding: 10px 20px 10px 20px;
+}
+.menu-item-help-copyright a {
+    color: #ffcc00;
 }

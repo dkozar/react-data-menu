@@ -9,7 +9,9 @@ import { CircleMenuItems } from './data/CircleMenuItems.js';
 import { Menu } from './components/Menu.js';
 import { items1 } from './data/items1.js';
 import { items2 } from './data/items2.js';
+import { helpItems } from './data/helpItems.js';
 import { LinkRenderer } from './renderers/LinkRenderer.js';
+import { HelpRenderer } from './renderers/HelpRenderer.js';
 import MenuEventDispatcher from './util/MenuEventDispatcher.js';
 
 require('./styles/main.css');
@@ -258,6 +260,7 @@ export class App extends Component {
                     <Svg width='100%' height='100%'>
                         {circles}
                     </Svg>
+                    <TextRotator />
                 </div>
 
                 {menu}
@@ -268,7 +271,22 @@ export class App extends Component {
                             Nice menu?
                         </button>
                     </DropdownMenu>
-                    <TextRotator />
+                    <DropdownMenu
+                        items={helpItems}
+                        className='about'
+                        classPrefix='help-'
+                        openOnMouseOver={true}
+                        closeOnMouseOut={false}
+                        mouseEnterDelay={500}
+                        mouseLeaveDelay={2000}
+                        hints={function() {
+                            return ['ne'];
+                        }}
+                        renderers={{
+                            'help': HelpRenderer
+                        }}>
+                        <button ref='button' className='menu-button'>?</button>
+                    </DropdownMenu>
                 </div>
             </div>
         );

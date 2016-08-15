@@ -31,7 +31,7 @@ var MenuPopupFactory = exports.MenuPopupFactory = function () {
     _createClass(MenuPopupFactory, [{
         key: 'createItem',
         value: function createItem(config) {
-            var className = classNames(_Dom.Dom.buildClassNames(this.classPrefix, ['menu-popup', 'showing']));
+            var className = classNames('showing', _Dom.Dom.buildClassNames(this.classPrefix, ['menu-popup']));
 
             return _react2.default.createElement(
                 'div',

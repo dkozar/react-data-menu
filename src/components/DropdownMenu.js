@@ -1,14 +1,14 @@
+import _ from 'lodash';
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { Dom } from './../util/Dom';
 import { Menu } from './Menu';
 import { Aligner } from './../util/Aligner.js';
-import _ from 'lodash';
 
 var classnames = require('classnames');
 
-const MOUSE_ENTER_DELAY = 500,
-      MOUSE_LEAVE_DELAY = 100,
+const MOUSE_ENTER_DELAY = 0,
+      MOUSE_LEAVE_DELAY = 1000,
       ALIGNER = Aligner,
       HINTS = function(depth) { // default hints. Could be overridden via props
           return !depth ?
@@ -24,6 +24,7 @@ export class DropdownMenu extends Component {
         this.onButtonClick = this.onButtonClick.bind(this);
         this.onButtonTouchStart = this.onButtonTouchStart.bind(this);
         this.onButtonMouseEnter = this.onButtonMouseEnter.bind(this);
+        this.onButtonMouseLeave = this.onButtonMouseLeave.bind(this);
         this.onOpen = this.onOpen.bind(this);
         this.onClose = this.onClose.bind(this);
         this.setMenuVisibility = this.setMenuVisibility.bind(this);
@@ -39,8 +40,12 @@ export class DropdownMenu extends Component {
     }
 
     onClose() {
-        this.hideMenu();
-        this.props.onClose();
+        // if the menu is closed by (this) dropdown menu, isOpen is already false
+        // we don't want to go circular, so short circuit here
+        if (this.state.isOpen) {
+            this.hideMenu();
+            this.props.onClose();
+        }
     }
 
     hideMenu() {
@@ -65,6 +70,12 @@ export class DropdownMenu extends Component {
         // else do nothing. If the menu is already open, it will close we'were clicking away from it.
     }
 
+    tryCloseMenu() {
+        if (this.state.isOpen) {
+            this.hideMenu();
+        }
+    }
+
     //<editor-fold desc="Button handlers">
     onButtonClick() {
         this.tryOpenMenu();
@@ -78,7 +89,13 @@ export class DropdownMenu extends Component {
 
     onButtonMouseEnter() {
         if (this.props.openOnMouseOver) {
-            this.tryOpenMenu();
+            _.delay(this.tryOpenMenu.bind(this), this.props.mouseEnterDelay);
+        }
+    }
+
+    onButtonMouseLeave() {
+        if (this.props.closeOnMouseOut) {
+            _.delay(this.tryCloseMenu.bind(this), this.props.mouseLeaveDelay);
         }
     }
 
@@ -104,7 +121,8 @@ export class DropdownMenu extends Component {
                 onClick: self.onButtonClick,
                 onTouchStart: self.onButtonTouchStart,
                 onContextMenu: self.onButtonContextMenu,
-                onMouseEnter: self.onButtonMouseEnter
+                onMouseEnter: self.onButtonMouseEnter,
+                onMouseLeave: self.onButtonMouseLeave
             });
         }.bind(this));
     }
@@ -147,7 +165,8 @@ export class DropdownMenu extends Component {
 DropdownMenu.propTypes = {
     classPrefix: React.PropTypes.string, // CSS class prefix for all the classes used by this dropdown menu
     buttonText: React.PropTypes.string, // the text of the default button
-    openOnMouseOver: React.PropTypes.bool.isRequired, // should menu be opened on mouse over (Mac menu is opened on first click)
+    openOnMouseOver: React.PropTypes.bool.isRequired, // should menu be opened on mouse over (Mac menu is opened on first *click*)
+    closeOnMouseOut: React.PropTypes.bool.isRequired, // should menu be closed on mouse over
     items: React.PropTypes.array.isRequired, // menu items (data)
     autoCloseOtherMenuInstances: React.PropTypes.bool.isRequired,
     mouseEnterDelay: React.PropTypes.number,
@@ -163,6 +182,7 @@ DropdownMenu.defaultProps = {
     classPrefix: '',
     buttonText: '- Menu -',
     openOnMouseOver: false,
+    closeOnMouseOut: false,
     items: [],
     aligner: new ALIGNER(),
     autoCloseOtherMenuInstances: true,

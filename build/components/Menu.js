@@ -444,8 +444,7 @@ var Menu = exports.Menu = function (_Component) {
     }, {
         key: 'componentWillUnmount',
         value: function componentWillUnmount() {
-            this.setMenuVisibility(false);
-            this.disconnectFromDispatcher();
+            this.closeMenu();
         }
     }, {
         key: 'componentWillUpdate',
