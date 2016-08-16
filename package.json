@@ -1,6 +1,6 @@
 {
   "name": "react-data-menu",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Smart data-driven menu rendered in an overlay",
   "scripts": {
     "hot": "node hotServer.js",
@@ -76,7 +76,7 @@
     "lodash": "^4.0.0",
     "react": "^0.14.3",
     "react-dom": "^0.14.3",
-    "react-liberator": "^1.0.11"
+    "react-liberator": "^1.0.12"
   },
   "precommit": [
     "lint",

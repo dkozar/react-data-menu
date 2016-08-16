@@ -29,7 +29,7 @@ var items1 = exports.items1 = [{
                                         items: [{
                                             title: 'Ten!!!'
                                         }, '-', {
-                                            title: ':)'
+                                            title: ':-)'
                                         }]
                                     }]
                                 }, '-', {

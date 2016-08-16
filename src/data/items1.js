@@ -24,7 +24,7 @@ export const items1 = [{
                                         items: [{
                                             title: 'Ten!!!'
                                         }, '-', {
-                                            title: ':)'
+                                            title: ':-)'
                                         }]
                                     }]
                                 }, '-', {

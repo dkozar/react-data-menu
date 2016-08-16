@@ -1,9 +1,29 @@
 import _ from 'lodash';
+import { DomRoute } from './DomRoute';
+
+const TAP_AND_HOLD_INTERVAL = 250;
 
 var subscribers = [],
+    parts = [],
     isTouchInterface = false,
-    instance;
+    instance,
+    touchTimeout;
 
+function menuPartClicked(route) {
+    return _.some(parts, function (part) {
+        return route.contains(part)
+    });
+}
+
+/**
+ * Subscribes to browser events (click, contextmenu, touchstart, touchend, resize and scroll)
+ * Dispatches 3 types of events - used by the menu system - by registering handlers and firing them
+ * It basically *converts* browser events to another type of events
+ * The choice of triggered handlers depends of:
+ * 1. is the menu currently on screen
+ * 2. do we click inside or outside of the menu
+ * 3. do we click/contextmenu or tap/tap-and-hold
+ */
 export default class MenuEventDispatcher {
 
     //<editor-fold desc="Singleton">
@@ -15,24 +35,25 @@ export default class MenuEventDispatcher {
     }
     //</editor-fold>
 
+    //<editor-fold desc="Constructor">
     constructor() {
         this.onClick = this.onClick.bind(this);
+        this.onContextMenu = this.onContextMenu.bind(this);
         this.onTouchStart = this.onTouchStart.bind(this);
-        this.onAnywhereClick = this.fireHandlers.bind(this, 'onAnywhereClick');
-        this.onAnywhereContextMenu = this.fireHandlers.bind(this, 'onAnywhereContextMenu');
-        this.onScreenResize = this.fireHandlers.bind(this, 'onScreenResize');
-        this.onScroll = this.fireHandlers.bind(this, 'onScroll');
+        this.onTouchEnd = this.onTouchEnd.bind(this);
+        this.evaluateAndDispatch = this.evaluateAndDispatch.bind(this);
+        this.dispatchClose = this.dispatchClose.bind(this);
     }
+    //</editor-fold>
 
+    //<editor-fold desc="Connect/disconnect">
     connect(handlers) {
         var len = subscribers.length;
 
         if (this.isConnected(handlers)) {
             return;
         }
-
         subscribers.push(handlers);
-
         this.handleBrowserEventSubscription(len, subscribers.length);
     }
 
@@ -42,7 +63,6 @@ export default class MenuEventDispatcher {
         _.remove(subscribers, function(subscriber) {
             return subscriber === handlers;
         });
-
         this.handleBrowserEventSubscription(len, subscribers.length);
     }
 
@@ -51,29 +71,114 @@ export default class MenuEventDispatcher {
             return subscriber === handlers;
         });
     }
+    //</editor-fold>
 
-    fireHandlers(handlerName, e) {
+    //<editor-fold desc="Part registration">
+
+    /**
+     * Registers menu part
+     * This is used for differentiating between clicking the menu and outside of the menu
+     * @param part
+     */
+    registerPart(part) {
+        parts.push(part);
+    }
+
+    /**
+     * Unregisters all menu parts
+     */
+    unregisterAllParts() {
+        parts = [];
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="Evaluation and firing">
+    /**
+     * Evaluates if the click/touch happened inside or outside of the menu (currently displayed on screen)
+     * 1. If it happened outside, fires 1. ON_CLOSE and 2. ON_CLICK_OUTSIDE/ON_CONTEXT_MENU) handlers IN SEQUENCE
+     * 2. If it happened inside, does nothing
+     * @param handlerName
+     * @param e Native event
+     * @param position Screen position
+     * @param route DOM element route
+     * @returns {boolean} True if happened outside
+     */
+    evaluateAndDispatch(handlerName, e, position, route) {
+        if (!menuPartClicked(route)) {
+            // 1. we clicked outside, so close the current menu
+            this.dispatchClose();
+            // 2. fire the requested handler
+            this.fireHandlers(handlerName, e, position, route);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Dispatches the close event
+     */
+    dispatchClose() {
+        this.unregisterAllParts();
+        this.fireHandlers(MenuEventDispatcher.ON_CLOSE);
+    }
+
+    fireHandlers(handlerName, e, position, route) {
         var handler;
 
         _.forEach(subscribers, function(handlers) {
-            handler = handlers[handlerName];
-            if (handler) {
-                handler(e);
+            if (handlers) { // might be undefined because firing some handlers could disconnect others (recursion)
+                handler = handlers[handlerName];
+                if (handler) {
+                    handler(e, position, route);
+                }
             }
         });
     }
+    //</editor-fold>
 
-    //<editor-fold desc="Click and touch">
+    //<editor-fold desc="Click and touch handlers">
     /**
-     * Fired on document body touch
+     * Fires on document body touchstart
      * We're switching to touch mode upon each touch
      * onClick handler checks if we're in touch mode and does not fire (preventing ghost clicks)
      * Ghost clicks: http://ariatemplates.com/blog/2014/05/ghost-clicks-in-mobile-browsers/
      * @param e
      */
     onTouchStart(e) {
-        this.onAnywhereClick(e);
+        var self = this,
+            touch, position, route, dispatched;
+
+            e = e || window.event;
+            touch = e.changedTouches[0];
+            position = {
+                x: touch.clientX,
+                y: touch.clientY
+            };
+            route = new DomRoute(e.target);
+
         isTouchInterface = true;
+
+        // on tap, trigger the click handler
+        dispatched = this.evaluateAndDispatch(MenuEventDispatcher.ON_CLICK_OUTSIDE, e, position, route);
+        if (!dispatched) {
+            // we clicked the menu, so short circuit here
+            return;
+        }
+
+        // after a delay (tap and hold) trigger the context menu handler
+        touchTimeout = setTimeout(function() {
+            self.evaluateAndDispatch(MenuEventDispatcher.ON_CONTEXT_MENU, e, position, route);
+        }, TAP_AND_HOLD_INTERVAL);
+    }
+
+    /**
+     * Fires on document body touchend
+     * @param e
+     */
+    onTouchEnd() {
+        // reset the tap-and-hold timer
+        isTouchInterface = true;
+        clearTimeout(touchTimeout);
     }
 
     /**
@@ -82,9 +187,33 @@ export default class MenuEventDispatcher {
      * @param e
      */
     onClick(e) {
+        var position, route;
+
+        e = e || window.event;
+
         if (!isTouchInterface) {
-            this.onAnywhereClick(e);
+            position = {
+                x: e.clientX,
+                y: e.clientY
+            };
+            route = new DomRoute(e.target);
+            this.evaluateAndDispatch(MenuEventDispatcher.ON_CLICK_OUTSIDE, e, position, route);
         }
+        isTouchInterface = false;
+    }
+
+    /**
+     * Fired on document body context menu
+     * @param e
+     */
+    onContextMenu(e) {
+        var position = {
+                x: e.clientX,
+                y: e.clientY
+            },
+            route = new DomRoute(e.target);
+
+        this.evaluateAndDispatch(MenuEventDispatcher.ON_CONTEXT_MENU, e, position, route);
         isTouchInterface = false;
     }
     //</editor-fold>
@@ -100,18 +229,24 @@ export default class MenuEventDispatcher {
 
     browserSubscribe() {
         document.body.addEventListener('click', this.onClick);
+        document.body.addEventListener('contextmenu', this.onContextMenu);
         document.body.addEventListener('touchstart', this.onTouchStart);
-        document.body.addEventListener('contextmenu', this.onAnywhereContextMenu);
-        window.addEventListener('resize', this.onScreenResize);
-        window.addEventListener('scroll', this.onScroll);
+        document.body.addEventListener('touchend', this.onTouchEnd);
+        window.addEventListener('resize', this.dispatchClose);
+        window.addEventListener('scroll', this.dispatchClose);
     }
 
     browserUnsubscribe() {
         document.body.removeEventListener('click', this.onClick);
+        document.body.removeEventListener('contextmenu', this.onContextMenu);
         document.body.removeEventListener('touchstart', this.onTouchStart);
-        document.body.removeEventListener('contextmenu', this.onAnywhereContextMenu);
-        window.removeEventListener('resize', this.onScreenResize);
-        window.removeEventListener('scroll', this.onScroll);
+        document.body.removeEventListener('touchend', this.onTouchEnd);
+        window.removeEventListener('resize', this.dispatchClose);
+        window.removeEventListener('scroll', this.dispatchClose);
     }
     //</editor-fold>
 }
+
+MenuEventDispatcher.ON_CLICK_OUTSIDE = 'onClickOutside';
+MenuEventDispatcher.ON_CONTEXT_MENU = 'onContextMenu';
+MenuEventDispatcher.ON_CLOSE = 'onClose';

@@ -8,7 +8,9 @@ export class HelpRenderer extends Component {
             <div key={data.key} id={data.id} className='menu-item-help'>
                 <div className='menu-item-help-title'>About</div>
                 <div className='menu-item-help-text'>
-                    This application is created using <a href={data.reactUrl} target={'_blank'}>ReactJS</a>.<br/>
+                    This application is created using <a href={data.reactUrl} target={'_blank'}>ReactJS</a>.
+                </div>
+                <div className='menu-item-help-text'>
                     React is a Javascript library for building<br/>user interfaces.
                 </div>
                 <div className='menu-item-help-copyright'>

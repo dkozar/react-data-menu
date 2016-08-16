@@ -23,6 +23,10 @@ var _Dom = require('./../util/Dom');
 
 var _Menu = require('./Menu');
 
+var _MenuEventDispatcher = require('./../util/MenuEventDispatcher.js');
+
+var _MenuEventDispatcher2 = _interopRequireDefault(_MenuEventDispatcher);
+
 var _Aligner = require('./../util/Aligner.js');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -70,6 +74,11 @@ var DropdownMenu = exports.DropdownMenu = function (_Component) {
     _createClass(DropdownMenu, [{
         key: 'onOpen',
         value: function onOpen() {
+            if (!this.props.toggleMode) {
+                // if in toggle mode, we do not register button as part,
+                // so the menu will close when clicking the button
+                _MenuEventDispatcher2.default.getInstance().registerPart(this.buttonElement);
+            }
             this.props.onOpen();
         }
     }, {
@@ -220,6 +229,7 @@ var DropdownMenu = exports.DropdownMenu = function (_Component) {
 DropdownMenu.propTypes = {
     classPrefix: _react2.default.PropTypes.string, // CSS class prefix for all the classes used by this dropdown menu
     buttonText: _react2.default.PropTypes.string, // the text of the default button
+    toggleMode: _react2.default.PropTypes.bool.isRequired, // should menu be toggled (opened/closed) by clicking the button // TODO
     openOnMouseOver: _react2.default.PropTypes.bool.isRequired, // should menu be opened on mouse over (Mac menu is opened on first *click*)
     closeOnMouseOut: _react2.default.PropTypes.bool.isRequired, // should menu be closed on mouse over
     items: _react2.default.PropTypes.array.isRequired, // menu items (data)
@@ -238,6 +248,7 @@ DropdownMenu.defaultProps = {
     buttonText: '- Menu -',
     openOnMouseOver: false,
     closeOnMouseOut: false,
+    toggleMode: true, // TODO
     items: [],
     aligner: new ALIGNER(),
     autoCloseOtherMenuInstances: true,

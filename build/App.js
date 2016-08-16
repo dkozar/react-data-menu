@@ -17,6 +17,10 @@ var _reactDom = require('react-dom');
 
 var _reactDom2 = _interopRequireDefault(_reactDom);
 
+var _Dom = require('./util/Dom');
+
+var _DomRoute = require('./util/DomRoute');
+
 var _DropdownMenu = require('./components/DropdownMenu.js');
 
 var _Svg = require('./components/Svg.js');
@@ -59,17 +63,22 @@ require('./styles/menu.css');
 var TOOLBAR_HEIGHT = 82,
     PURPLE = '#5943aa',
     ORANGE = '#ff7c35',
-    GREEN = '#2ead6d',
     RED = '#e31d65',
     YELLOW = '#ffcc00',
-    COLORS = [PURPLE, ORANGE, GREEN, RED, YELLOW];
+    COLORS = [PURPLE, ORANGE, RED, YELLOW];
 
-function extractPosition(e) {
-    return {
-        x: e.clientX,
-        y: e.clientY
-    };
+var canvasElement;
+
+//<editor-fold desc="Helper functions">
+function isCanvasElement(route) {
+    return route.contains(canvasElement);
 }
+
+function isCircle(target) {
+    console.log('target', target);
+    return isCanvasElement && target.id.startsWith('circle');
+}
+//</editor-fold>
 
 var App = exports.App = function (_Component) {
     _inherits(App, _Component);
@@ -80,7 +89,7 @@ var App = exports.App = function (_Component) {
         var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(App).call(this, props));
 
         _this.state = {
-            showMenu: false,
+            contextMenuVisible: false,
             openOnMouseOver: false,
             circles: [{
                 x: 200, y: 200, r: 100, color: PURPLE
@@ -90,75 +99,101 @@ var App = exports.App = function (_Component) {
             current: -1
         };
 
-        _this.onAppContextMenu = _this.onAppContextMenu.bind(_this);
-        _this.onAppTouchStart = _this.onAppTouchStart.bind(_this);
-        _this.onCircleContextMenu = _this.onCircleContextMenu.bind(_this);
-        _this.onCircleTouchStart = _this.onCircleTouchStart.bind(_this);
         _this.onMenuClose = _this.onMenuClose.bind(_this);
+        _this.onClickOutside = _this.onClickOutside.bind(_this);
+        _this.onContextMenu = _this.onContextMenu.bind(_this);
         _this.executeCommand = _this.executeCommand.bind(_this);
-        _this.onAnywhereClickOrContextMenu = _this.onAnywhereClickOrContextMenu.bind(_this);
 
+        // subscribing to menu event dispatcher
         _MenuEventDispatcher2.default.getInstance().connect({
-            onAnywhereClick: _this.onAnywhereClickOrContextMenu,
-            onAnywhereContextMenu: _this.onAnywhereClickOrContextMenu
+            onClickOutside: _this.onClickOutside,
+            onContextMenu: _this.onContextMenu
         });
         return _this;
     }
 
+    //<editor-fold desc="Handlers">
+    /**
+     * Fires when clicked outside of the current menu
+     */
+
+
     _createClass(App, [{
-        key: 'onAnywhereClickOrContextMenu',
-        value: function onAnywhereClickOrContextMenu(e) {
+        key: 'onClickOutside',
+        value: function onClickOutside() {
             this.setState({
                 openOnMouseOver: false
             });
         }
 
-        //<editor-fold desc="Show/hide menu">
+        /**
+         * Fires on contextmenu or tap-and-hold
+         * @param e
+         * @param position
+         * @param route DomRoute
+         */
 
     }, {
-        key: 'showMenu',
-        value: function showMenu(e, position, items) {
-            this.menuPosition = position;
-            e.preventDefault();
-            e.stopPropagation();
+        key: 'onContextMenu',
+        value: function onContextMenu(e, position, route) {
+            console.log('route', route.getPath());
+            //var target = route.getTarget();
+            var target = e.target;
+
             this.setState({
-                showMenu: true,
-                items: items
+                openOnMouseOver: false
             });
+
+            if (!isCanvasElement(route)) {
+                return; // we're interested only in canvas clicks
+            }
+            if (isCircle(target)) {
+                // circle clicked
+                this.selectCircle(target);
+                this.showContextMenu(e, position, this.circleMenuItems);
+            } else {
+                // background clicked
+                this.setState({
+                    current: -1
+                });
+                this.showContextMenu(e, position, this.appMenuItems);
+            }
         }
-    }, {
-        key: 'onAppContextMenu',
-        value: function onAppContextMenu(e) {
-            this.showMenu(e, extractPosition(e), this.appMenuItems);
-        }
-    }, {
-        key: 'onAppTouchStart',
-        value: function onAppTouchStart(e) {
-            this.showMenu(e, extractPosition(e.nativeEvent.targetTouches[0]), this.appMenuItems);
-        }
-    }, {
-        key: 'onCircleContextMenu',
-        value: function onCircleContextMenu(source, e) {
-            this.state.current = source;
-            this.showMenu(e, extractPosition(e), this.circleMenuItems);
-        }
-    }, {
-        key: 'onCircleTouchStart',
-        value: function onCircleTouchStart(source, e) {
-            this.state.current = source;
-            this.showMenu(e, extractPosition(e.nativeEvent.targetTouches[0]), this.circleMenuItems);
-        }
+
+        /**
+         * Fires on menu close
+         * We would accomplish the same effect by subscribing to dispatched directly, instead of the Menu
+         */
+
     }, {
         key: 'onMenuClose',
         value: function onMenuClose() {
             this.setState({
-                showMenu: false,
+                contextMenuVisible: false,
                 current: -1
             });
         }
         //</editor-fold>
 
-        //<editor-fold desc="Commands">
+        //<editor-fold desc="Show/hide menu">
+
+    }, {
+        key: 'showContextMenu',
+        value: function showContextMenu(e, position, items) {
+            var self = this;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            self.setState({
+                contextMenuVisible: true,
+                menuPosition: position,
+                items: items
+            });
+        }
+        //</editor-fold>
+
+        //<editor-fold desc="Circles & commands">
 
     }, {
         key: 'executeCommand',
@@ -219,6 +254,13 @@ var App = exports.App = function (_Component) {
             this.setState({ circles: circles });
         }
     }, {
+        key: 'selectCircle',
+        value: function selectCircle(circleElement) {
+            var circleIndex = parseInt(circleElement.id.split('-')[1]);
+
+            this.state.current = circleIndex;
+        }
+    }, {
         key: 'bringToTop',
         value: function bringToTop(circles, circle, current) {
             circles.splice(current, 1);
@@ -233,7 +275,7 @@ var App = exports.App = function (_Component) {
     }, {
         key: 'newCircle',
         value: function newCircle(circles) {
-            var pos = this.menuPosition,
+            var pos = this.state.menuPosition,
                 r = Math.floor(Math.random() * 150) + 50,
                 color = COLORS[Math.floor(Math.random() * COLORS.length)],
                 circle = {
@@ -255,42 +297,19 @@ var App = exports.App = function (_Component) {
         //</editor-fold>
 
     }, {
-        key: 'componentDidMount',
-        value: function componentDidMount() {
-            var self = this;
-
-            function binder() {
-                var _self$executeCommand;
-
-                return (_self$executeCommand = self.executeCommand).bind.apply(_self$executeCommand, [self].concat(Array.prototype.slice.call(arguments)));
-            }
-            this.circleMenuItems = new _CircleMenuItems.CircleMenuItems(binder);
-            this.appMenuItems = new _AppMenuItems.AppMenuItems(binder);
-        }
-    }, {
-        key: 'cancelEvent',
-        value: function cancelEvent(e) {
-            var e = event || window.event;
-            e.preventDefault && e.preventDefault();
-            e.stopPropagation && e.stopPropagation();
-            e.cancelBubble = true;
-            e.returnValue = false;
-            return false;
-        }
-    }, {
         key: 'render',
         value: function render() {
             var self = this,
                 index = 0,
-                menu = this.state.showMenu ? _react2.default.createElement(_Menu.Menu, { items: this.state.items, position: this.menuPosition, onClose: this.onMenuClose }) : null,
+                menu = this.state.contextMenuVisible ? _react2.default.createElement(_Menu.Menu, { items: this.state.items,
+                position: this.state.menuPosition,
+                onClose: this.onMenuClose }) : null,
                 circles = this.state.circles.map(function (circle) {
-                var circleIndex = index++;
+                var circle = _react2.default.createElement(_Circle.Circle, _extends({}, circle, { id: 'circle-' + index, key: 'circle-' + index, strokeColor: 'white',
+                    selected: self.state.current === index }));
 
-                return _react2.default.createElement(_Circle.Circle, _extends({}, circle, { key: 'circle-' + index, strokeColor: 'white',
-                    selected: self.state.current === index,
-                    onContextMenu: self.onCircleContextMenu.bind(this, circleIndex),
-                    onTouchStart: self.onCircleTouchStart.bind(this, circleIndex),
-                    onMenuClose: self.onMenuClose }));
+                index++;
+                return circle;
             }),
                 renderers = {
                 'link': _LinkRenderer.LinkRenderer
@@ -307,20 +326,18 @@ var App = exports.App = function (_Component) {
 
             return _react2.default.createElement(
                 'div',
-                { onContextMenu: this.onAppContextMenu,
-                    onTouchStart: this.onAppTouchStart,
-                    onTouchEnd: this.cancelEvent,
-                    onTouchCancel: this.cancelEvent,
-                    onTouchMove: this.cancelEvent },
+                null,
                 _react2.default.createElement(
                     'div',
                     { className: 'toolbar' },
                     _react2.default.createElement(_DropdownMenu.DropdownMenu, _extends({ buttonText: 'React Data Menu', items: _items.items1 }, common)),
-                    _react2.default.createElement(_DropdownMenu.DropdownMenu, _extends({ buttonText: 'Example', items: _items2.items2 }, common))
+                    _react2.default.createElement(_DropdownMenu.DropdownMenu, _extends({ buttonText: 'Menu 1', items: _items2.items2 }, common)),
+                    _react2.default.createElement(_DropdownMenu.DropdownMenu, _extends({ buttonText: 'Menu 2', items: _items2.items2 }, common)),
+                    _react2.default.createElement(_DropdownMenu.DropdownMenu, _extends({ buttonText: 'Menu 3', items: _items2.items2 }, common))
                 ),
                 _react2.default.createElement(
                     'div',
-                    { className: 'container' },
+                    { ref: 'canvas', className: 'container' },
                     _react2.default.createElement(
                         _Svg.Svg,
                         { width: '100%', height: '100%' },
@@ -334,19 +351,22 @@ var App = exports.App = function (_Component) {
                     { className: 'toolbar toolbar-bottom' },
                     _react2.default.createElement(
                         _DropdownMenu.DropdownMenu,
-                        _extends({ items: _items.items1 }, common),
+                        _extends({ items: _items.items1 }, common, { toggleMode: false }),
                         _react2.default.createElement(
                             'button',
-                            { ref: 'button', className: 'menu-button' },
-                            'Nice menu?'
+                            { className: 'menu-button' },
+                            'Menu 4'
                         )
                     ),
+                    _react2.default.createElement(_DropdownMenu.DropdownMenu, _extends({ buttonText: 'Menu 5', items: _items2.items2 }, common, { toggleMode: false })),
+                    _react2.default.createElement(_DropdownMenu.DropdownMenu, _extends({ buttonText: 'Menu 6', items: _items2.items2 }, common, { toggleMode: false })),
                     _react2.default.createElement(
                         _DropdownMenu.DropdownMenu,
                         {
                             items: _helpItems.helpItems,
                             className: 'about',
                             classPrefix: 'help-',
+                            toggleMode: false,
                             openOnMouseOver: true,
                             closeOnMouseOut: false,
                             mouseEnterDelay: 500,
@@ -359,12 +379,27 @@ var App = exports.App = function (_Component) {
                             } },
                         _react2.default.createElement(
                             'button',
-                            { ref: 'button', className: 'menu-button' },
+                            { className: 'menu-button' },
                             '?'
                         )
                     )
                 )
             );
+        }
+    }, {
+        key: 'componentDidMount',
+        value: function componentDidMount() {
+            var self = this;
+
+            function binder() {
+                var _self$executeCommand;
+
+                return (_self$executeCommand = self.executeCommand).bind.apply(_self$executeCommand, [self].concat(Array.prototype.slice.call(arguments)));
+            }
+            this.circleMenuItems = new _CircleMenuItems.CircleMenuItems(binder);
+            this.appMenuItems = new _AppMenuItems.AppMenuItems(binder);
+
+            canvasElement = _reactDom2.default.findDOMNode(this.refs.canvas);
         }
     }]);
 

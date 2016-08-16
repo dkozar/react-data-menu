@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
+import { Dom } from './util/Dom';
+import { DomRoute } from './util/DomRoute';
 import { DropdownMenu } from './components/DropdownMenu.js';
 import { Svg } from './components/Svg.js';
 import { TextRotator } from './components/TextRotator.js';
@@ -20,17 +22,22 @@ require('./styles/menu.css');
 const TOOLBAR_HEIGHT = 82,
     PURPLE = '#5943aa',
     ORANGE = '#ff7c35',
-    GREEN = '#2ead6d',
     RED = '#e31d65',
     YELLOW = '#ffcc00',
-    COLORS = [PURPLE, ORANGE, GREEN, RED, YELLOW];
+    COLORS = [PURPLE, ORANGE, RED, YELLOW];
 
-function extractPosition(e) {
-    return {
-        x: e.clientX,
-        y: e.clientY
-    }
+var canvasElement;
+
+//<editor-fold desc="Helper functions">
+function isCanvasElement(route) {
+    return route.contains(canvasElement);
 }
+
+function isCircle(target) {
+    console.log('target', target)
+    return isCanvasElement && target.id.startsWith('circle');
+}
+//</editor-fold>
 
 export class App extends Component {
 
@@ -38,7 +45,7 @@ export class App extends Component {
         super(props);
 
         this.state = {
-            showMenu: false,
+            contextMenuVisible: false,
             openOnMouseOver: false,
             circles: [
                 {
@@ -51,64 +58,87 @@ export class App extends Component {
             current: -1
         };
 
-        this.onAppContextMenu = this.onAppContextMenu.bind(this);
-        this.onAppTouchStart = this.onAppTouchStart.bind(this);
-        this.onCircleContextMenu = this.onCircleContextMenu.bind(this);
-        this.onCircleTouchStart = this.onCircleTouchStart.bind(this);
         this.onMenuClose = this.onMenuClose.bind(this);
+        this.onClickOutside = this.onClickOutside.bind(this);
+        this.onContextMenu = this.onContextMenu.bind(this);
         this.executeCommand = this.executeCommand.bind(this);
-        this.onAnywhereClickOrContextMenu = this.onAnywhereClickOrContextMenu.bind(this);
 
+        // subscribing to menu event dispatcher
         MenuEventDispatcher.getInstance().connect({
-            onAnywhereClick: this.onAnywhereClickOrContextMenu,
-            onAnywhereContextMenu: this.onAnywhereClickOrContextMenu
+            onClickOutside: this.onClickOutside,
+            onContextMenu: this.onContextMenu
         });
     }
 
-    onAnywhereClickOrContextMenu(e) {
+    //<editor-fold desc="Handlers">
+    /**
+     * Fires when clicked outside of the current menu
+     */
+    onClickOutside() {
         this.setState({
             openOnMouseOver: false
         });
     }
 
-    //<editor-fold desc="Show/hide menu">
-    showMenu(e, position, items) {
-        this.menuPosition = position;
-        e.preventDefault();
-        e.stopPropagation();
+    /**
+     * Fires on contextmenu or tap-and-hold
+     * @param e
+     * @param position
+     * @param route DomRoute
+     */
+    onContextMenu(e, position, route) {
+        console.log('route', route.getPath());
+        //var target = route.getTarget();
+        var target = e.target;
+
         this.setState({
-            showMenu: true,
-            items
+            openOnMouseOver: false
         });
+
+        if (!isCanvasElement(route)) {
+            return; // we're interested only in canvas clicks
+        }
+        if (isCircle(target)) {
+            // circle clicked
+            this.selectCircle(target);
+            this.showContextMenu(e, position, this.circleMenuItems);
+        } else {
+            // background clicked
+            this.setState({
+                current: -1
+            });
+            this.showContextMenu(e, position, this.appMenuItems);
+        }
     }
 
-    onAppContextMenu(e) {
-        this.showMenu(e, extractPosition(e), this.appMenuItems);
-    }
-
-    onAppTouchStart(e) {
-        this.showMenu(e, extractPosition(e.nativeEvent.targetTouches[0]), this.appMenuItems);
-    }
-
-    onCircleContextMenu(source, e) {
-        this.state.current = source;
-        this.showMenu(e, extractPosition(e), this.circleMenuItems);
-    }
-
-    onCircleTouchStart(source, e) {
-        this.state.current = source;
-        this.showMenu(e, extractPosition(e.nativeEvent.targetTouches[0]), this.circleMenuItems);
-    }
-
+    /**
+     * Fires on menu close
+     * We would accomplish the same effect by subscribing to dispatched directly, instead of the Menu
+     */
     onMenuClose() {
         this.setState({
-            showMenu: false,
+            contextMenuVisible: false,
             current: -1
         });
     }
     //</editor-fold>
 
-    //<editor-fold desc="Commands">
+    //<editor-fold desc="Show/hide menu">
+    showContextMenu(e, position, items) {
+        var self = this;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        self.setState({
+            contextMenuVisible: true,
+            menuPosition: position,
+            items
+        });
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="Circles & commands">
     executeCommand(command) {
         var circles = this.state.circles,
             current = this.state.current,
@@ -166,6 +196,12 @@ export class App extends Component {
         this.setState({circles});
     }
 
+    selectCircle(circleElement) {
+        var circleIndex = parseInt(circleElement.id.split('-')[1]);
+
+        this.state.current = circleIndex;
+    }
+
     bringToTop(circles, circle, current) {
         circles.splice(current, 1);
         circles.push(circle);
@@ -177,7 +213,7 @@ export class App extends Component {
     }
 
     newCircle(circles) {
-        var pos = this.menuPosition,
+        var pos = this.state.menuPosition,
             r = Math.floor(Math.random() * 150) + 50,
             color = COLORS[Math.floor(Math.random() * COLORS.length)],
             circle = {
@@ -196,41 +232,22 @@ export class App extends Component {
     }
     //</editor-fold>
 
-    componentDidMount() {
-        var self = this;
-
-        function binder() {
-            return self.executeCommand.bind(self, ...arguments);
-        }
-        this.circleMenuItems = new CircleMenuItems(binder);
-        this.appMenuItems = new AppMenuItems(binder);
-    }
-
-    cancelEvent(e) {
-        var e = event || window.event;
-        e.preventDefault && e.preventDefault();
-        e.stopPropagation && e.stopPropagation();
-        e.cancelBubble = true;
-        e.returnValue = false;
-        return false;
-    }
-
     render() {
         var self = this,
             index = 0,
-            menu = this.state.showMenu ? (
-                <Menu items={this.state.items} position={this.menuPosition} onClose={this.onMenuClose} />
+            menu = this.state.contextMenuVisible ? (
+                <Menu items={this.state.items}
+                      position={this.state.menuPosition}
+                      onClose={this.onMenuClose} />
             ) : null,
             circles = this.state.circles.map(function (circle) {
-                var circleIndex = index++;
-
-                return (
-                    <Circle {...circle} key={'circle-' + index} strokeColor='white'
-                                        selected={self.state.current === index}
-                                        onContextMenu={self.onCircleContextMenu.bind(this, circleIndex)}
-                                        onTouchStart={self.onCircleTouchStart.bind(this, circleIndex)}
-                                        onMenuClose={self.onMenuClose} />
+                var circle = (
+                    <Circle {...circle} id={'circle-' + index} key={'circle-' + index} strokeColor='white'
+                        selected={self.state.current === index} />
                 );
+
+                index++;
+                return circle;
             }),
             renderers = {
                 'link': LinkRenderer
@@ -246,17 +263,15 @@ export class App extends Component {
             };
 
         return (
-            <div onContextMenu={this.onAppContextMenu}
-                 onTouchStart={this.onAppTouchStart}
-                 onTouchEnd={this.cancelEvent}
-                 onTouchCancel={this.cancelEvent}
-                 onTouchMove={this.cancelEvent}>
+            <div>
                 <div className='toolbar'>
                     <DropdownMenu buttonText='React Data Menu' items={items1} {...common} />
-                    <DropdownMenu buttonText='Example' items={items2} {...common} />
+                    <DropdownMenu buttonText='Menu 1' items={items2} {...common} />
+                    <DropdownMenu buttonText='Menu 2' items={items2} {...common} />
+                    <DropdownMenu buttonText='Menu 3' items={items2} {...common} />
                 </div>
 
-                <div className='container'>
+                <div ref='canvas' className='container'>
                     <Svg width='100%' height='100%'>
                         {circles}
                     </Svg>
@@ -265,16 +280,20 @@ export class App extends Component {
 
                 {menu}
 
+                { /* Bottom toolbar - let's not toggle these buttons */ }
                 <div className='toolbar toolbar-bottom'>
-                    <DropdownMenu items={items1} {...common}>
-                        <button ref='button' className='menu-button'>
-                            Nice menu?
-                        </button>
+                    { /* Custom button example */ }
+                    <DropdownMenu items={items1} {...common} toggleMode={false}>
+                        <button className='menu-button'>Menu 4</button>
                     </DropdownMenu>
+                    <DropdownMenu buttonText='Menu 5' items={items2} {...common} toggleMode={false} />
+                    <DropdownMenu buttonText='Menu 6' items={items2} {...common} toggleMode={false} />
+                    { /* Tooltip example (single item menu) */ }
                     <DropdownMenu
                         items={helpItems}
                         className='about'
                         classPrefix='help-'
+                        toggleMode={false}
                         openOnMouseOver={true}
                         closeOnMouseOut={false}
                         mouseEnterDelay={500}
@@ -285,10 +304,22 @@ export class App extends Component {
                         renderers={{
                             'help': HelpRenderer
                         }}>
-                        <button ref='button' className='menu-button'>?</button>
+                        <button className='menu-button'>?</button>
                     </DropdownMenu>
                 </div>
             </div>
         );
+    }
+
+    componentDidMount() {
+        var self = this;
+
+        function binder() {
+            return self.executeCommand.bind(self, ...arguments);
+        }
+        this.circleMenuItems = new CircleMenuItems(binder);
+        this.appMenuItems = new AppMenuItems(binder);
+
+        canvasElement = ReactDOM.findDOMNode(this.refs.canvas);
     }
 }

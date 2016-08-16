@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
 import _ from 'lodash';
+import React, { Component } from 'react';
 import { Aligner } from './../util/Aligner.js';
 import { Dom } from './../util/Dom';
 import MenuEventDispatcher from './../util/MenuEventDispatcher.js';
@@ -37,7 +37,8 @@ const MOUSE_LEAVE_DELAY = 100,
 
 // references to all the open menu instances
 // usually only the single instance, since by default we're allowing only a single menu on screen (we're auto-closing others)
-var instances = [];
+var instances = [],
+    layerElement;
 
 export class Menu extends Component {
 
@@ -70,10 +71,9 @@ export class Menu extends Component {
         this.hoverData = null;
 
         this.handlers = {
-            onAnywhereClick: this.onAnywhereClickOrContextMenu,
-            onAnywhereContextMenu: this.onAnywhereClickOrContextMenu,
-            onScreenResize: this.closeMenu,
-            onScroll: this.closeMenu
+            onClickOutside: this.onAnywhereClickOrContextMenu,
+            onContextMenu: this.onAnywhereClickOrContextMenu,
+            onClose: this.closeMenu
         };
     }
 
@@ -90,7 +90,6 @@ export class Menu extends Component {
                 instance.closeMenu();
             }
         });
-        instances = [];
     }
 
     removeInstance() {
@@ -134,11 +133,7 @@ export class Menu extends Component {
      * @param e
      */
     onAnywhereClickOrContextMenu(e) {
-        var clickedElement = e.target;
-
-        if (!this.popupsContain(clickedElement)) {
-            this.closeMenu();
-        }
+        this.closeMenu();
     }
 
     /**
@@ -324,8 +319,12 @@ export class Menu extends Component {
                 alignTo = self.props.alignToFunc.call(self, level),
                 hints = self.props.hints.call(self, level),
                 popup = (
-                    <Liberator key={'liberator-popup-' + level}
-                               layer={self.props.layer} layerId={self.props.layerId} autoCleanup={self.props.autoCleanup} >
+                    <Liberator
+                        key={'liberator-popup-' + level}
+                        layer={self.props.layer}
+                        layerId={self.props.layerId}
+                        autoCleanup={self.props.autoCleanup}
+                        onActivate={self.activateHandler}>
                         <MenuPopup
                             classPrefix={self.props.classPrefix}
                             key={'menu-popup-' + data.id}
@@ -357,15 +356,17 @@ export class Menu extends Component {
     }
 
     componentDidMount() {
+        //console.log('menu componentDidMount')
         if (this.props.autoCloseOtherMenuInstances) {
             this.closeOtherMenuInstances();
+            instances = [];
         }
         this.setMenuVisibility(true);
-        instances.push(this); // BUG with closeOtherMenuInstances
+        instances.push(this);
     }
 
     componentWillUnmount() {
-        this.closeMenu();
+        //console.log('menu componentWillUnmount')
     }
 
     componentWillUpdate(nextProps, nextState) {
@@ -375,24 +376,14 @@ export class Menu extends Component {
             this.disconnectFromDispatcher();
         }
     }
+
+    activateHandler(e) {
+        layerElement = e.layer;
+        MenuEventDispatcher.getInstance().registerPart(layerElement);
+    }
     //</editor-fold>
 
     //<editor-fold desc="Helper">
-    /**
-     * Returns true if any of the popups contain element
-     * @param element The element to test against
-     * @returns {boolean}
-     */
-    popupsContain(element) {
-        var parentElement;
-
-        return this.state.popups.some(function(popup) {
-            parentElement = document.getElementById(popup.id);
-
-            return Dom.contains(parentElement, element);
-        });
-    }
-
     /**
      * Returns the popup
      * @param popupId The ID of the popup

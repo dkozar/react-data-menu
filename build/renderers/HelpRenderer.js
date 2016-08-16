@@ -50,8 +50,11 @@ var HelpRenderer = exports.HelpRenderer = function (_Component) {
                         { href: data.reactUrl, target: '_blank' },
                         'ReactJS'
                     ),
-                    '.',
-                    _react2.default.createElement('br', null),
+                    '.'
+                ),
+                _react2.default.createElement(
+                    'div',
+                    { className: 'menu-item-help-text' },
                     'React is a Javascript library for building',
                     _react2.default.createElement('br', null),
                     'user interfaces.'

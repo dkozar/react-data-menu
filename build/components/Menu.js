@@ -7,13 +7,13 @@ exports.Menu = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = require('react');
-
-var _react2 = _interopRequireDefault(_react);
-
 var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
+
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
 
 var _Aligner = require('./../util/Aligner.js');
 
@@ -71,7 +71,8 @@ var MOUSE_LEAVE_DELAY = 100,
 
 // references to all the open menu instances
 // usually only the single instance, since by default we're allowing only a single menu on screen (we're auto-closing others)
-var instances = [];
+var instances = [],
+    layerElement;
 
 var Menu = exports.Menu = function (_Component) {
     _inherits(Menu, _Component);
@@ -107,10 +108,9 @@ var Menu = exports.Menu = function (_Component) {
         _this.hoverData = null;
 
         _this.handlers = {
-            onAnywhereClick: _this.onAnywhereClickOrContextMenu,
-            onAnywhereContextMenu: _this.onAnywhereClickOrContextMenu,
-            onScreenResize: _this.closeMenu,
-            onScroll: _this.closeMenu
+            onClickOutside: _this.onAnywhereClickOrContextMenu,
+            onContextMenu: _this.onAnywhereClickOrContextMenu,
+            onClose: _this.closeMenu
         };
         return _this;
     }
@@ -132,7 +132,6 @@ var Menu = exports.Menu = function (_Component) {
                     instance.closeMenu();
                 }
             });
-            instances = [];
         }
     }, {
         key: 'removeInstance',
@@ -186,11 +185,7 @@ var Menu = exports.Menu = function (_Component) {
     }, {
         key: 'onAnywhereClickOrContextMenu',
         value: function onAnywhereClickOrContextMenu(e) {
-            var clickedElement = e.target;
-
-            if (!this.popupsContain(clickedElement)) {
-                this.closeMenu();
-            }
+            this.closeMenu();
         }
 
         /**
@@ -403,8 +398,12 @@ var Menu = exports.Menu = function (_Component) {
                 popups = this.state.popups.map(function (data) {
                 alignTo = self.props.alignToFunc.call(self, level), hints = self.props.hints.call(self, level), popup = _react2.default.createElement(
                     _reactLiberator2.default,
-                    { key: 'liberator-popup-' + level,
-                        layer: self.props.layer, layerId: self.props.layerId, autoCleanup: self.props.autoCleanup },
+                    {
+                        key: 'liberator-popup-' + level,
+                        layer: self.props.layer,
+                        layerId: self.props.layerId,
+                        autoCleanup: self.props.autoCleanup,
+                        onActivate: self.activateHandler },
                     _react2.default.createElement(_MenuPopup.MenuPopup, {
                         classPrefix: self.props.classPrefix,
                         key: 'menu-popup-' + data.id,
@@ -435,16 +434,18 @@ var Menu = exports.Menu = function (_Component) {
     }, {
         key: 'componentDidMount',
         value: function componentDidMount() {
+            //console.log('menu componentDidMount')
             if (this.props.autoCloseOtherMenuInstances) {
                 this.closeOtherMenuInstances();
+                instances = [];
             }
             this.setMenuVisibility(true);
-            instances.push(this); // BUG with closeOtherMenuInstances
+            instances.push(this);
         }
     }, {
         key: 'componentWillUnmount',
         value: function componentWillUnmount() {
-            this.closeMenu();
+            //console.log('menu componentWillUnmount')
         }
     }, {
         key: 'componentWillUpdate',
@@ -455,27 +456,15 @@ var Menu = exports.Menu = function (_Component) {
                 this.disconnectFromDispatcher();
             }
         }
+    }, {
+        key: 'activateHandler',
+        value: function activateHandler(e) {
+            layerElement = e.layer;
+            _MenuEventDispatcher2.default.getInstance().registerPart(layerElement);
+        }
         //</editor-fold>
 
         //<editor-fold desc="Helper">
-        /**
-         * Returns true if any of the popups contain element
-         * @param element The element to test against
-         * @returns {boolean}
-         */
-
-    }, {
-        key: 'popupsContain',
-        value: function popupsContain(element) {
-            var parentElement;
-
-            return this.state.popups.some(function (popup) {
-                parentElement = document.getElementById(popup.id);
-
-                return _Dom.Dom.contains(parentElement, element);
-            });
-        }
-
         /**
          * Returns the popup
          * @param popupId The ID of the popup

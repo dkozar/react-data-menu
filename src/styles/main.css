@@ -57,9 +57,10 @@ circle.purple {
     display: inline;
     color: #ffcc00;
     font-size: 30px;
-    line-height: 82px;
-    bottom: 10px;
+    line-height: 30px;
+    bottom: 20px;
     right: 20px;
+    pointer-events: none;
 }
 
 .button:focus {

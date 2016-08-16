@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { Dom } from './../util/Dom';
 import { Menu } from './Menu';
+import MenuEventDispatcher from './../util/MenuEventDispatcher.js';
 import { Aligner } from './../util/Aligner.js';
 
 var classnames = require('classnames');
@@ -36,6 +37,11 @@ export class DropdownMenu extends Component {
     }
 
     onOpen() {
+        if (!this.props.toggleMode) {
+            // if in toggle mode, we do not register button as part,
+            // so the menu will close when clicking the button
+            MenuEventDispatcher.getInstance().registerPart(this.buttonElement);
+        }
         this.props.onOpen();
     }
 
@@ -165,6 +171,7 @@ export class DropdownMenu extends Component {
 DropdownMenu.propTypes = {
     classPrefix: React.PropTypes.string, // CSS class prefix for all the classes used by this dropdown menu
     buttonText: React.PropTypes.string, // the text of the default button
+    toggleMode: React.PropTypes.bool.isRequired, // should menu be toggled (opened/closed) by clicking the button // TODO
     openOnMouseOver: React.PropTypes.bool.isRequired, // should menu be opened on mouse over (Mac menu is opened on first *click*)
     closeOnMouseOut: React.PropTypes.bool.isRequired, // should menu be closed on mouse over
     items: React.PropTypes.array.isRequired, // menu items (data)
@@ -183,6 +190,7 @@ DropdownMenu.defaultProps = {
     buttonText: '- Menu -',
     openOnMouseOver: false,
     closeOnMouseOut: false,
+    toggleMode: true, // TODO
     items: [],
     aligner: new ALIGNER(),
     autoCloseOtherMenuInstances: true,
