@@ -460,7 +460,7 @@ var Menu = exports.Menu = function (_Component) {
         key: 'activateHandler',
         value: function activateHandler(e) {
             layerElement = e.layer;
-            _MenuEventDispatcher2.default.getInstance().registerPart(layerElement);
+            _MenuEventDispatcher2.default.getInstance().registerPart(layerElement, false);
         }
         //</editor-fold>
 

@@ -37,11 +37,10 @@ export class DropdownMenu extends Component {
     }
 
     onOpen() {
-        if (!this.props.toggleMode) {
-            // if in toggle mode, we do not register button as part,
-            // so the menu will close when clicking the button
-            MenuEventDispatcher.getInstance().registerPart(this.buttonElement);
-        }
+        // if we're in toggle mode, register button as a toggle part,
+        // clicking or tapping the toggle parts produces 'onClickOutside' (so if the menu is open, clicking the button will close it)
+        // however, tap-and-hold won't produce 'onContextMenu' (which would close the menu)
+        MenuEventDispatcher.getInstance().registerPart(this.buttonElement, this.props.toggleMode);
         this.props.onOpen();
     }
 

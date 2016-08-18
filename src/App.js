@@ -34,7 +34,6 @@ function isCanvasElement(route) {
 }
 
 function isCircle(target) {
-    console.log('target', target)
     return isCanvasElement && target.id.startsWith('circle');
 }
 //</editor-fold>
@@ -87,7 +86,6 @@ export class App extends Component {
      * @param route DomRoute
      */
     onContextMenu(e, position, route) {
-        console.log('route', route.getPath());
         //var target = route.getTarget();
         var target = e.target;
 

@@ -379,7 +379,7 @@ export class Menu extends Component {
 
     activateHandler(e) {
         layerElement = e.layer;
-        MenuEventDispatcher.getInstance().registerPart(layerElement);
+        MenuEventDispatcher.getInstance().registerPart(layerElement, false);
     }
     //</editor-fold>
 

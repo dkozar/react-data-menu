@@ -9,9 +9,17 @@ var subscribers = [],
     instance,
     touchTimeout;
 
-function menuPartClicked(route) {
+/**
+ * Checks if any of the parts is within the clicked route
+ * @param route The DomRoute to check
+ * @param includeToggleParts Should we treat toggle parts as parts menu parts
+ * @returns {boolean}
+ */
+function menuPartClicked(route, includeToggleParts) {
     return _.some(parts, function (part) {
-        return route.contains(part)
+        var shouldIncludeThisPart = includeToggleParts || !part.isToggle;
+
+        return shouldIncludeThisPart && route.contains(part.element);
     });
 }
 
@@ -78,10 +86,13 @@ export default class MenuEventDispatcher {
     /**
      * Registers menu part
      * This is used for differentiating between clicking the menu and outside of the menu
-     * @param part
+     * @param element
      */
-    registerPart(part) {
-        parts.push(part);
+    registerPart(element, isToggle) {
+        parts.push({
+            element,
+            isToggle
+        });
     }
 
     /**
@@ -101,10 +112,11 @@ export default class MenuEventDispatcher {
      * @param e Native event
      * @param position Screen position
      * @param route DOM element route
+     * @param includeToggleParts Should we treat toggle parts as parts menu parts
      * @returns {boolean} True if happened outside
      */
-    evaluateAndDispatch(handlerName, e, position, route) {
-        if (!menuPartClicked(route)) {
+    evaluateAndDispatch(handlerName, e, position, route, includeToggleParts) {
+        if (!menuPartClicked(route, includeToggleParts)) {
             // 1. we clicked outside, so close the current menu
             this.dispatchClose();
             // 2. fire the requested handler
@@ -159,7 +171,7 @@ export default class MenuEventDispatcher {
         isTouchInterface = true;
 
         // on tap, trigger the click handler
-        dispatched = this.evaluateAndDispatch(MenuEventDispatcher.ON_CLICK_OUTSIDE, e, position, route);
+        dispatched = this.evaluateAndDispatch(MenuEventDispatcher.ON_CLICK_OUTSIDE, e, position, route, false);
         if (!dispatched) {
             // we clicked the menu, so short circuit here
             return;
@@ -167,7 +179,12 @@ export default class MenuEventDispatcher {
 
         // after a delay (tap and hold) trigger the context menu handler
         touchTimeout = setTimeout(function() {
-            self.evaluateAndDispatch(MenuEventDispatcher.ON_CONTEXT_MENU, e, position, route);
+            // we're producing the 'onContextMenu' event on tap-and-hold
+            // because of that, we might have tapped the dropdown button, which opened the menu
+            // we're still within this timeout interval, waiting to dispatch ON_CONTEXT_MENU
+            // however, if the button is in toggle mode, this action would close the menu
+            // since we don't want this to happen, we are ignoring the toggle parts here
+            self.evaluateAndDispatch(MenuEventDispatcher.ON_CONTEXT_MENU, e, position, route, true);
         }, TAP_AND_HOLD_INTERVAL);
     }
 
@@ -197,7 +214,10 @@ export default class MenuEventDispatcher {
                 y: e.clientY
             };
             route = new DomRoute(e.target);
-            this.evaluateAndDispatch(MenuEventDispatcher.ON_CLICK_OUTSIDE, e, position, route);
+            // we're ignoring toggle parts here
+            // for instance, if dropdown button is in toggleMode, it is a toggle part
+            // if the menu is open and we click the button, the menu should close
+            this.evaluateAndDispatch(MenuEventDispatcher.ON_CLICK_OUTSIDE, e, position, route, false);
         }
         isTouchInterface = false;
     }
@@ -207,13 +227,17 @@ export default class MenuEventDispatcher {
      * @param e
      */
     onContextMenu(e) {
-        var position = {
-                x: e.clientX,
-                y: e.clientY
-            },
-            route = new DomRoute(e.target);
+        var position, route;
 
-        this.evaluateAndDispatch(MenuEventDispatcher.ON_CONTEXT_MENU, e, position, route);
+        e = e || window.event;
+
+        position = {
+            x: e.clientX,
+            y: e.clientY
+        },
+        route = new DomRoute(e.target);
+
+        this.evaluateAndDispatch(MenuEventDispatcher.ON_CONTEXT_MENU, e, position, route, false);
         isTouchInterface = false;
     }
     //</editor-fold>
