@@ -15,6 +15,8 @@ var _react2 = _interopRequireDefault(_react);
 
 var _Dom = require('./../util/Dom');
 
+var _Dom2 = _interopRequireDefault(_Dom);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -37,7 +39,7 @@ var Button = exports.Button = function (_Component) {
     _createClass(Button, [{
         key: 'render',
         value: function render() {
-            var className = classnames(this.props.className, _Dom.Dom.buildClassNames(this.props.classPrefix, ['menu-item-button'])),
+            var className = classnames(this.props.className, _Dom2.default.buildClassNames(this.props.classPrefix, ['menu-item-button'])),
                 data = this.props.data,
                 chevron = this.props.isExpandable ? _react2.default.createElement('span', { className: 'fa fa-chevron-right fa-fw' }) : null;
 

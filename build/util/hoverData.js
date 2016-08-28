@@ -8,12 +8,13 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var HoverData = exports.HoverData = function () {
-    function HoverData(popupId, itemId, itemIndex, element, data) {
+var HoverData = function () {
+    function HoverData(popupId, itemId, popupIndex, itemIndex, element, data) {
         _classCallCheck(this, HoverData);
 
         this.popupId = popupId;
         this.itemId = itemId;
+        this.popupIndex = popupIndex;
         this.itemIndex = itemIndex;
         this.element = element;
         this.data = data;
@@ -110,3 +111,5 @@ var HoverData = exports.HoverData = function () {
 
     return HoverData;
 }();
+
+exports.default = HoverData;

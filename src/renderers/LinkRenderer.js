@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
-import { Dom } from './../util/Dom';
+import Dom from './../util/Dom';
 
 var classnames = require('classnames');
 
 var DEFAULT_URL = '#',
     DEFAULT_TARGET = '_self';
 
-export class LinkRenderer extends Component {
+export default class LinkRenderer extends Component {
     render() {
         var className = classnames(this.props.className, Dom.buildClassNames(this.props.classPrefix, ['menu-item-link'])),
             data = this.props.data;

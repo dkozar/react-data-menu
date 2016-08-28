@@ -3,7 +3,6 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.TextRotator = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -25,7 +24,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 var texts = ['This menu is data driven (hierarchy is not hardcoded).', 'Open the drop-down menu on top.', 'Check out the bottom menu.', 'Right-click the application background for context menu.', 'Right-click the circle for another context menu.', 'Menu popups are fully customizable. Menu items too.', 'None of the popups should ever be cropped by screen edges.', 'You can specify directions of popups by providing hints.'];
 
-var TextRotator = exports.TextRotator = function (_Component) {
+var TextRotator = function (_Component) {
     _inherits(TextRotator, _Component);
 
     function TextRotator(props) {
@@ -75,3 +74,5 @@ var TextRotator = exports.TextRotator = function (_Component) {
 
     return TextRotator;
 }(_react.Component);
+
+exports.default = TextRotator;

@@ -3,7 +3,6 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.MenuItemFactory = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -21,7 +20,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var classnames = require('classnames');
 
-var MenuItemFactory = exports.MenuItemFactory = function () {
+var MenuItemFactory = function () {
     function MenuItemFactory(renderers, classPrefix) {
         _classCallCheck(this, MenuItemFactory);
 
@@ -31,7 +30,7 @@ var MenuItemFactory = exports.MenuItemFactory = function () {
 
     _createClass(MenuItemFactory, [{
         key: 'createItem',
-        value: function createItem(data, key, classes) {
+        value: function createItem(data, key, classes, config) {
             var isExpandable = !!data.items,
                 renderer = this.renderers[data.type],
                 additions = {},
@@ -51,10 +50,13 @@ var MenuItemFactory = exports.MenuItemFactory = function () {
                 key: key,
                 isExpandable: isExpandable,
                 className: className,
-                classPrefix: classPrefix
+                classPrefix: classPrefix,
+                config: config
             });
         }
     }]);
 
     return MenuItemFactory;
 }();
+
+exports.default = MenuItemFactory;

@@ -11,6 +11,11 @@
     transition: background-color 150ms ease-in;
 }
 
+.menu-button-selected {
+    background-color: #5943aa;
+    transition: background-color 150ms ease-in;
+}
+
 .menu-button:hover {
     background-color: #5943aa;
     transition: background-color 150ms ease-in;

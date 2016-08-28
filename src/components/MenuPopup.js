@@ -1,60 +1,24 @@
+import _ from 'lodash';
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import { Aligner } from './../util/Aligner.js';
-import { HoverData } from './../util/HoverData.js';
-import _ from 'lodash';
+import Aligner from './../util/Aligner.js';
+import HoverData from './../util/HoverData.js';
+
+export const ITEM_ID_PREFIX = 'menu-item-';
+
+const DEFAULT_ITEM_RENDERER_TYPE = 'button';
 
 var classnames = require('classnames');
 
-export class MenuPopup extends Component {
+export default class MenuPopup extends Component {
 
     constructor(props) {
         super(props);
 
         this.aligner = this.props.aligner;
-        this.onItemClick = this.onItemClick.bind(this);
-        this.onPopupContextMenu = this.onPopupContextMenu.bind(this);
-        this.onItemMouseEnter = this.onItemMouseEnter.bind(this);
-        this.onItemMouseLeave = this.onItemMouseLeave.bind(this);
         this.state = {
-            indexMap: {},
-            showing: false,
-            selectedIndex: -1
+            showing: false
         };
-    }
-
-    buildHoverData(data, e) {
-        var popupId = this.props.popupId,
-            buttonId = e.currentTarget.id,
-            index = this.state.indexMap[buttonId],
-            self = this;
-
-        self.setState({
-            selectedIndex: index
-        });
-
-        return new HoverData(popupId, buttonId, index, e.currentTarget, data);
-    }
-
-    onPopupContextMenu(e) {
-        e.preventDefault();
-    }
-
-    onItemClick(data, e) {
-        this.props.onItemClick(this.buildHoverData(data, e));
-    }
-
-    onItemContextMenu(data, e) {
-        e.preventDefault();
-        this.props.onItemContextMenu(this.buildHoverData(data, e));
-    }
-
-    onItemMouseEnter(data, e) {
-        this.props.onItemMouseEnter(this.buildHoverData(data, e));
-    }
-
-    onItemMouseLeave(data, e) {
-        this.props.onItemMouseLeave(this.buildHoverData(data, e));
     }
 
     render() {
@@ -62,34 +26,23 @@ export class MenuPopup extends Component {
             self = this,
             popupFactory = this.props.popupFactory,
             itemFactory = this.props.itemFactory,
-            indexMap = this.state.indexMap,
             key, children, menuItem,
             styles;
 
         children = this.props.items ? this.props.items.map(function (data) {
             var classes = {};
 
-            key = 'menu-item-' + index;
-            indexMap[key] = index;
+            key = ITEM_ID_PREFIX + index;
 
-            if (self.state.selectedIndex === index) {
+            if (self.props.selectedIndex === index) {
                 classes[self.props.classPrefix + 'menu-item-selected'] = true;
             }
 
             data = self.expandDescriptor(data);
 
-            // overriding standard handlers with data handlers
-            var handlers = _.assign({
-                onClick: self.onItemClick.bind(self, data),
-                onContextMenu: self.onItemContextMenu.bind(self, data),
-                onMouseEnter: self.onItemMouseEnter.bind(self, data),
-                onMouseLeave: self.onItemMouseLeave.bind(self, data)
-            }, data.handlers);
-
-            menuItem = itemFactory.createItem(_.assign({}, data, { // BUG FIX "{}, "
-                id: key,
-                handlers
-            }), key, classnames(classes));
+            menuItem = itemFactory.createItem(_.assign({}, data, {
+                id: key
+            }), key, classnames(classes), self.props.config);
 
             index ++;
 
@@ -102,15 +55,10 @@ export class MenuPopup extends Component {
             top: this.props.y + 'px'
         };
 
-        var handlers = {
-            onContextMenu: self.onPopupContextMenu
-        };
-
         return popupFactory.createItem(_.assign({}, {
             popupId: this.props.popupId,
             styles,
             children,
-            handlers,
             showing: this.state.showing
         }));
     }
@@ -142,20 +90,21 @@ export class MenuPopup extends Component {
             }
         }
         if (!data.type) {
-            data.type = 'button'; // default renderer type
+            data.type = DEFAULT_ITEM_RENDERER_TYPE;
         }
         return data;
     }
 }
 MenuPopup.propTypes = {
+    config: React.PropTypes.object, // config object visiting every menu item
     classPrefix: React.PropTypes.string,
     x: React.PropTypes.number,
     y: React.PropTypes.number,
     items: React.PropTypes.arrayOf(React.PropTypes.oneOfType([React.PropTypes.object, React.PropTypes.string])),
     popupId: React.PropTypes.string.isRequired,
     useOffset: React.PropTypes.bool.isRequired,
-    onPopupContextMenu: React.PropTypes.func.isRequired,
-    hints: React.PropTypes.arrayOf(React.PropTypes.string)
+    hints: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
+    selectedIndex: React.PropTypes.number.isRequired
 };
 MenuPopup.defaultProps = {
     classPrefix: '',
@@ -163,7 +112,6 @@ MenuPopup.defaultProps = {
     y: 0,
     items: [],
     alignTo: null,
-    hints: ['right', 'left', 'bottom', 'top', 'bottom'],
     useOffset: false,
-    onPopupContextMenu(e) {}
+    selectedIndex: -1
 };

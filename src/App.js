@@ -1,51 +1,47 @@
+import _ from 'lodash';
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import { Dom } from './util/Dom';
-import { DomRoute } from './util/DomRoute';
-import { DropdownMenu } from './components/DropdownMenu.js';
-import { Svg } from './components/Svg.js';
-import { TextRotator } from './components/TextRotator.js';
-import { AppMenuItems } from './data/AppMenuItems.js';
-import { Circle } from './components/Circle.js';
-import { CircleMenuItems } from './data/CircleMenuItems.js';
-import { Menu } from './components/Menu.js';
-import { items1 } from './data/items1.js';
-import { items2 } from './data/items2.js';
-import { helpItems } from './data/helpItems.js';
-import { LinkRenderer } from './renderers/LinkRenderer.js';
-import { HelpRenderer } from './renderers/HelpRenderer.js';
-import MenuEventDispatcher from './util/MenuEventDispatcher.js';
+import AppMenuItems from './data/AppMenuItems.js';
+import BottomToolbar from './components/BottomToolbar.js';
+import Circle from './components/Circle.js';
+import {CIRCLE_ID_PREFIX} from './components/Circle.js';
+import CircleMenuItems from './data/CircleMenuItems.js';
+import CircleOps from './util/CircleOps.js';
+import LinkRenderer from './renderers/LinkRenderer.js';
+import Menu from './components/Menu.js';
+import MenuEmitter from './emitters/MenuEmitter.js';
+import Svg from './components/Svg.js';
+import TextRotator from './components/TextRotator.js';
+import TopToolbar from './components/TopToolbar.js';
+
+var Emitter = require('raycast-dom').Emitter.default;
+
+import { PURPLE, ORANGE } from './util/colors';
 
 require('./styles/main.css');
 require('./styles/menu.css');
 
-const TOOLBAR_HEIGHT = 82,
-    PURPLE = '#5943aa',
-    ORANGE = '#ff7c35',
-    RED = '#e31d65',
-    YELLOW = '#ffcc00',
-    COLORS = [PURPLE, ORANGE, RED, YELLOW];
-
-var canvasElement;
+var rootNode, canvasNode;
 
 //<editor-fold desc="Helper functions">
-function isCanvasElement(route) {
-    return route.contains(canvasElement);
+function isCircle(target) {
+    return target.id.startsWith('circle');
 }
 
-function isCircle(target) {
-    return isCanvasElement && target.id.startsWith('circle');
+function getCircleId(circleElement) {
+    return parseInt(circleElement.id.split('-')[1]);
 }
 //</editor-fold>
 
 export class App extends Component {
 
+    //<editor-fold desc="Constructor">
     constructor(props) {
         super(props);
 
         this.state = {
             contextMenuVisible: false,
-            openOnMouseOver: false,
+            openOnMouseOver: false, // if true, drop-down menu will open on mouse over
             circles: [
                 {
                     x: 200, y: 200, r: 100, color: PURPLE
@@ -54,58 +50,146 @@ export class App extends Component {
                     x: 800, y: 500, r: 150, color: ORANGE
                 }
             ],
-            current: -1
+            hoveredCircleIndex: -1,
+            selectedCircleIndex: -1
         };
 
         this.onMenuClose = this.onMenuClose.bind(this);
-        this.onClickOutside = this.onClickOutside.bind(this);
-        this.onContextMenu = this.onContextMenu.bind(this);
+        this.onMouseDownInsideOrOutside = this.onMouseDownInsideOrOutside.bind(this);
+        this.onContextMenuOutside = this.onContextMenuOutside.bind(this);
         this.executeCommand = this.executeCommand.bind(this);
 
-        // subscribing to menu event dispatcher
-        MenuEventDispatcher.getInstance().connect({
-            onClickOutside: this.onClickOutside,
-            onContextMenu: this.onContextMenu
+        // 1. Raycast Emitter subscription
+        Emitter.getInstance().connect({
+            onMouseOver: this.onMouseOver.bind(this), // circle mouse over
+            onMouseOut: this.onMouseOut.bind(this), // circle mouse out
+            onMouseMove: this.onMouseMove.bind(this), // drawing circles with Alt key
+            onMouseDown: this.onMouseDown.bind(this), // drawing circles with Alt key
+            onMouseUp: this.onMouseUp.bind(this) // stop drawing circles with Alt key
+        });
+
+        // 2. MenuEmitter subscription
+        MenuEmitter.getInstance().connect({
+            onContextMenuOutside: this.onContextMenuOutside, // show context menu
+            onMouseDownOutside: this.onMouseDownInsideOrOutside, // flip openOnMouseOver state
+            onMouseDownInside: this.onMouseDownInsideOrOutside, // flip openOnMouseOver state
+            onMouseUpInside: this.onMouseUpInside.bind(this) // flip openOnMouseOver state
+        });
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="Raycast">
+    onMouseOver(ray) {
+        var circle = ray.intersectsId(CIRCLE_ID_PREFIX),
+            circleId, circleIndex;
+
+        if (circle) {
+            // circle mouse over
+            circleId = circle.id;
+            circleIndex = parseInt(circleId.split(CIRCLE_ID_PREFIX)[1]);
+            this.setState({
+                hoveredCircleIndex: circleIndex
+            });
+        }
+    }
+
+    onMouseOut(ray) {
+        var circle = ray.intersectsId(CIRCLE_ID_PREFIX);
+
+        if (circle) {
+            // circle mouse over
+            this.setState({
+                hoveredCircleIndex: -1
+            });
+        }
+    }
+
+    onMouseDown(ray) {
+        var self = this;
+
+        if (!ray.intersects(canvasNode)) {
+            return;
+        }
+
+        this.setState({
+            mouseIsDown: true,
+            mousePosition: ray.position
+        }, function() {
+            if (ray.e.altKey) {
+                if (ray.e.shiftKey) {
+                    self.executeCommand('clear'); // Alt + Shift + click = clear
+                } else if (ray.intersects(canvasNode)) {
+                    self.executeCommand('new-circle'); // Alt + click = new circle
+                }
+            }
         });
     }
 
-    //<editor-fold desc="Handlers">
-    /**
-     * Fires when clicked outside of the current menu
-     */
-    onClickOutside() {
+    onMouseUp() {
+        this.setState({
+            mouseIsDown: false
+        });
+    }
+
+    onMouseMove(ray) {
+        var self = this;
+
+        if (!ray.e.altKey || !this.state.mouseIsDown || !ray.intersects(canvasNode)) {
+            return;
+        }
+
+        this.setState({
+            mousePosition: ray.position
+        }, function() {
+            self.executeCommand('new-circle'); // Alt + mouse move = new circle
+        });
+    }
+
+    onMouseDownInsideOrOutside() {
+        this.setState({
+            openOnMouseOver: false
+        });
+    }
+
+    onMouseUpInside() {
         this.setState({
             openOnMouseOver: false
         });
     }
 
     /**
-     * Fires on contextmenu or tap-and-hold
-     * @param e
-     * @param position
-     * @param route DomRoute
+     * Fires on contextmenu or tap-and-hold outside of the current menu
+     * @param ray Ray
      */
-    onContextMenu(e, position, route) {
-        //var target = route.getTarget();
-        var target = e.target;
+    onContextMenuOutside(ray) {
+        var target = ray.target;
 
         this.setState({
             openOnMouseOver: false
         });
 
-        if (!isCanvasElement(route)) {
+        if (ray.intersects(rootNode)) {
+            // cancel default on the app root (not the web page - GitHub link must work)
+            ray.preventDefault();
+        }
+
+        if (!ray.intersects(canvasNode)) {
             return; // we're interested only in canvas clicks
         }
+
+        // cancel default menu on canvas
+        ray.preventDefault();
+
         if (isCircle(target)) {
             // circle clicked
             this.selectCircle(target);
-            this.showContextMenu(e, position, this.circleMenuItems);
+            this.showContextMenu(ray, this.circleContextMenuItems);
         } else {
-            // background clicked
+            // canvas clicked
             this.setState({
-                current: -1
+                selectedCircleIndex: -1
             });
-            this.showContextMenu(e, position, this.appMenuItems);
+            this.showContextMenu(ray, this.appContextMenuItems);
         }
     }
 
@@ -116,158 +200,77 @@ export class App extends Component {
     onMenuClose() {
         this.setState({
             contextMenuVisible: false,
-            current: -1
+            selectedCircleIndex: -1
         });
     }
     //</editor-fold>
 
-    //<editor-fold desc="Show/hide menu">
-    showContextMenu(e, position, items) {
-        var self = this;
-
-        e.preventDefault();
-        e.stopPropagation();
-
-        self.setState({
+    //<editor-fold desc="Show context menu">
+    showContextMenu(ray, items) {
+        this.setState({
             contextMenuVisible: true,
-            menuPosition: position,
+            menuPosition: ray.position,
             items
         });
     }
     //</editor-fold>
 
     //<editor-fold desc="Circles & commands">
+    selectCircle(circleElement) {
+        this.state.selectedCircleIndex = getCircleId(circleElement);
+    }
+
     executeCommand(command) {
-        var circles = this.state.circles,
-            current = this.state.current,
-            circle = circles[current],
-            transformed = false;
+        var position = this.state.mouseIsDown ?
+            this.state.mousePosition :
+            this.state.menuPosition,
 
-        switch (command) {
-            case 'increase-x':
-                circle.x += 10;
-                transformed = true;
-                break;
-            case 'decrease-x':
-                circle.x -= 10;
-                transformed = true;
-                break;
-            case 'increase-y':
-                circle.y += 10;
-                transformed = true;
-                break;
-            case 'decrease-y':
-                circle.y -= 10;
-                transformed = true;
-                break;
-            case 'increase-r':
-                circle.r += 10;
-                transformed = true;
-                break;
-            case 'decrease-r':
-                circle.r -= 10;
-                transformed = true;
-                break;
-            case 'bring-to-front':
-                this.bringToTop(circles, circle, current);
-                break;
-            case 'send-to-back':
-                this.sendToBack(circles, circle, current);
-                break;
-            case 'new-circle':
-                this.newCircle(circles);
-                break;
-            case 'remove-circle':
-                this.removeCircle(circles, current);
-                break;
-            case 'clear':
-                this.clear(circles);
-                break;
-        }
-
-        if (transformed) {
-            circle.x = Math.max(circle.x, 10);
-            circle.y = Math.max(circle.y, 10);
-            circle.r = Math.max(circle.r, 10);
-        }
+            circles = CircleOps.executeCommand(command, this.state.circles, this.state.selectedCircleIndex, position);
 
         this.setState({circles});
     }
-
-    selectCircle(circleElement) {
-        var circleIndex = parseInt(circleElement.id.split('-')[1]);
-
-        this.state.current = circleIndex;
-    }
-
-    bringToTop(circles, circle, current) {
-        circles.splice(current, 1);
-        circles.push(circle);
-    }
-
-    sendToBack(circles, circle, current) {
-        circles.splice(current, 1);
-        circles.unshift(circle);
-    }
-
-    newCircle(circles) {
-        var pos = this.state.menuPosition,
-            r = Math.floor(Math.random() * 150) + 50,
-            color = COLORS[Math.floor(Math.random() * COLORS.length)],
-            circle = {
-                x: pos.x, y: pos.y - TOOLBAR_HEIGHT, r, color
-            };
-
-        circles.push(circle);
-    }
-
-    removeCircle(circles, current) {
-        circles.splice(current, 1);
-    }
-
-    clear(circles) {
-        circles.splice(0, circles.length);
-    }
     //</editor-fold>
 
+    //<editor-fold desc="React">
     render() {
         var self = this,
             index = 0,
-            menu = this.state.contextMenuVisible ? (
-                <Menu items={this.state.items}
-                      position={this.state.menuPosition}
-                      onClose={this.onMenuClose} />
-            ) : null,
-            circles = this.state.circles.map(function (circle) {
-                var circle = (
-                    <Circle {...circle} id={'circle-' + index} key={'circle-' + index} strokeColor='white'
-                        selected={self.state.current === index} />
-                );
+            commonToolbarProps = {
+                openOnMouseOver: this.state.openOnMouseOver,
+                renderers: {
+                    'link': LinkRenderer
+                },
+                onOpen() {
+                    self.setState({
+                        // let's have the Mac-like behaviour
+                        // once the first drop-down was opened by clicking, consequent drop-downs open on mouse-over
+                        openOnMouseOver: true
+                    });
+                }
+            },
+            circles = this.state.circles.map(function (item) {
+                var id = CIRCLE_ID_PREFIX + index,
+                    circle = (
+                        <Circle {...item}
+                            id={id}
+                            key={id}
+                            strokeColor='white'
+                            hovered={self.state.hoveredCircleIndex === index}
+                            selected={self.state.selectedCircleIndex === index} />
+                    );
 
                 index++;
                 return circle;
             }),
-            renderers = {
-                'link': LinkRenderer
-            },
-            common = {
-                openOnMouseOver: this.state.openOnMouseOver,
-                renderers,
-                onOpen() {
-                    self.setState({
-                        openOnMouseOver: true // let's have the Mac-like behaviour. Once the first dropdown is open by clicking, consequent open on mouse-over.
-                    });
-                }
-            };
+            menu = this.state.contextMenuVisible ? (
+                <Menu items={this.state.items}
+                      position={this.state.menuPosition}
+                      onClose={this.onMenuClose} />
+            ) : null;
 
         return (
-            <div>
-                <div className='toolbar'>
-                    <DropdownMenu buttonText='React Data Menu' items={items1} {...common} />
-                    <DropdownMenu buttonText='Menu 1' items={items2} {...common} />
-                    <DropdownMenu buttonText='Menu 2' items={items2} {...common} />
-                    <DropdownMenu buttonText='Menu 3' items={items2} {...common} />
-                </div>
+            <div ref='root'>
+                <TopToolbar {...commonToolbarProps} />
 
                 <div ref='canvas' className='container'>
                     <Svg width='100%' height='100%'>
@@ -278,33 +281,7 @@ export class App extends Component {
 
                 {menu}
 
-                { /* Bottom toolbar - let's not toggle these buttons */ }
-                <div className='toolbar toolbar-bottom'>
-                    { /* Custom button example */ }
-                    <DropdownMenu items={items1} {...common} toggleMode={false}>
-                        <button className='menu-button'>Menu 4</button>
-                    </DropdownMenu>
-                    <DropdownMenu buttonText='Menu 5' items={items2} {...common} toggleMode={false} />
-                    <DropdownMenu buttonText='Menu 6' items={items2} {...common} toggleMode={false} />
-                    { /* Tooltip example (single item menu) */ }
-                    <DropdownMenu
-                        items={helpItems}
-                        className='about'
-                        classPrefix='help-'
-                        toggleMode={false}
-                        openOnMouseOver={true}
-                        closeOnMouseOut={false}
-                        mouseEnterDelay={500}
-                        mouseLeaveDelay={2000}
-                        hints={function() {
-                            return ['ne'];
-                        }}
-                        renderers={{
-                            'help': HelpRenderer
-                        }}>
-                        <button className='menu-button'>?</button>
-                    </DropdownMenu>
-                </div>
+                <BottomToolbar {...commonToolbarProps} />
             </div>
         );
     }
@@ -315,9 +292,11 @@ export class App extends Component {
         function binder() {
             return self.executeCommand.bind(self, ...arguments);
         }
-        this.circleMenuItems = new CircleMenuItems(binder);
-        this.appMenuItems = new AppMenuItems(binder);
+        this.circleContextMenuItems = new CircleMenuItems(binder);
+        this.appContextMenuItems = new AppMenuItems(binder);
 
-        canvasElement = ReactDOM.findDOMNode(this.refs.canvas);
+        rootNode = ReactDOM.findDOMNode(this.refs.root);
+        canvasNode = ReactDOM.findDOMNode(this.refs.canvas);
     }
+    //</editor-fold>
 }

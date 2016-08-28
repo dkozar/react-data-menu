@@ -1,7 +1,8 @@
-export class HoverData {
-    constructor(popupId, itemId, itemIndex, element, data) {
+export default class HoverData {
+    constructor(popupId, itemId, popupIndex, itemIndex, element, data) {
         this.popupId = popupId;
         this.itemId = itemId;
+        this.popupIndex = popupIndex;
         this.itemIndex = itemIndex;
         this.element = element;
         this.data = data;

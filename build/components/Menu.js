@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.Menu = undefined;
+exports.POPUP_ID_PREFIX = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -17,27 +17,41 @@ var _react2 = _interopRequireDefault(_react);
 
 var _Aligner = require('./../util/Aligner.js');
 
+var _Aligner2 = _interopRequireDefault(_Aligner);
+
+var _defaultRenderers = require('./../renderers/defaultRenderers.js');
+
 var _Dom = require('./../util/Dom');
 
-var _MenuEventDispatcher = require('./../util/MenuEventDispatcher.js');
+var _Dom2 = _interopRequireDefault(_Dom);
 
-var _MenuEventDispatcher2 = _interopRequireDefault(_MenuEventDispatcher);
+var _hoverData = require('./../util/hoverData');
+
+var _hoverData2 = _interopRequireDefault(_hoverData);
+
+var _hoverDataBuilder = require('./../util/hoverDataBuilder');
+
+var _hoverDataBuilder2 = _interopRequireDefault(_hoverDataBuilder);
+
+var _MenuEmitter = require('./../emitters/MenuEmitter.js');
+
+var _MenuEmitter2 = _interopRequireDefault(_MenuEmitter);
+
+var _MenuItemFactory = require('./MenuItemFactory.js');
+
+var _MenuItemFactory2 = _interopRequireDefault(_MenuItemFactory);
 
 var _MenuPopup = require('./MenuPopup');
 
+var _MenuPopup2 = _interopRequireDefault(_MenuPopup);
+
 var _MenuPopupFactory = require('./MenuPopupFactory.js');
 
-var _MenuItemFactory = require('./MenuItemFactory.js');
+var _MenuPopupFactory2 = _interopRequireDefault(_MenuPopupFactory);
 
 var _reactLiberator = require('react-liberator');
 
 var _reactLiberator2 = _interopRequireDefault(_reactLiberator);
-
-var _ButtonRenderer = require('./../renderers/ButtonRenderer.js');
-
-var _LabelRenderer = require('./../renderers/LabelRenderer.js');
-
-var _SeparatorRenderer = require('./../renderers/SeparatorRenderer.js');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -47,26 +61,16 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-//<editor-fold desc="Default renderers">
+var POPUP_ID_PREFIX = exports.POPUP_ID_PREFIX = 'menu-popup-';
 
-
-//</editor-fold>
-
-var DEFAULT_LAYER_ID = '___react-data-menu___';
-
-var MOUSE_LEAVE_DELAY = 100,
+var DEFAULT_LAYER_ID = 'react-data-menu-popup',
+    MOUSE_LEAVE_DELAY = 100,
     MOUSE_ENTER_DELAY = 200,
-    RENDERERS = {
-    'button': _ButtonRenderer.Button,
-    'label': _LabelRenderer.Label,
-    '-': _SeparatorRenderer.Separator
-},
-    ALIGNER = _Aligner.Aligner,
     HINTS = function HINTS() {
     return ['es', 'em', 'ee', 'ws', 'wm', 'we'];
 },
     ALIGN_TO = function ALIGN_TO(level) {
-    return !level ? this.props.alignTo || this.props.position : this.hoverData ? this.hoverData.getElement() : null;
+    return !level ? this.props.alignTo || this.props.position : this.currentHoverData ? this.currentHoverData.getElement() : null;
 };
 
 // references to all the open menu instances
@@ -74,8 +78,10 @@ var MOUSE_LEAVE_DELAY = 100,
 var instances = [],
     layerElement;
 
-var Menu = exports.Menu = function (_Component) {
+var Menu = function (_Component) {
     _inherits(Menu, _Component);
+
+    //<editor-fold desc="Constructor">
 
     function Menu(props) {
         _classCallCheck(this, Menu);
@@ -83,11 +89,7 @@ var Menu = exports.Menu = function (_Component) {
         var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Menu).call(this, props));
 
         _this.onItemClick = _this.onItemClick.bind(_this);
-        _this.onItemContextMenu = _this.onItemContextMenu.bind(_this);
-        _this.onItemMouseLeave = _this.onItemMouseLeave.bind(_this);
-        _this.onItemMouseEnter = _this.onItemMouseEnter.bind(_this);
         _this.closeMenu = _this.closeMenu.bind(_this);
-        _this.onAnywhereClickOrContextMenu = _this.onAnywhereClickOrContextMenu.bind(_this);
         _this.createPopup = _this.createPopup.bind(_this);
         _this.removeChildPopups = _this.removeChildPopups.bind(_this);
         _this.removePopups = _this.removePopups.bind(_this);
@@ -96,8 +98,8 @@ var Menu = exports.Menu = function (_Component) {
         _this.processInActionDebounced = _lodash2.default.debounce(_this.processInAction.bind(_this), MOUSE_ENTER_DELAY);
         _this.processOutActionDebounced = _lodash2.default.debounce(_this.processOutAction.bind(_this), MOUSE_LEAVE_DELAY);
 
-        _this.popupFactory = new _MenuPopupFactory.MenuPopupFactory(_this.props.classPrefix);
-        _this.itemFactory = new _MenuItemFactory.MenuItemFactory(_lodash2.default.assign(RENDERERS, props.renderers), props.classPrefix);
+        _this.popupFactory = new _MenuPopupFactory2.default(_this.props.classPrefix);
+        _this.itemFactory = new _MenuItemFactory2.default(_lodash2.default.assign(_defaultRenderers.DefaultRenderers, props.renderers), props.classPrefix);
 
         _this.state = {
             visible: false,
@@ -105,16 +107,24 @@ var Menu = exports.Menu = function (_Component) {
             popups: []
         };
 
-        _this.hoverData = null;
+        _this.currentHoverData = null;
 
         _this.handlers = {
-            onClickOutside: _this.onAnywhereClickOrContextMenu,
-            onContextMenu: _this.onAnywhereClickOrContextMenu,
-            onClose: _this.closeMenu
+            onMouseDownOutside: _this.onMouseDownOutside.bind(_this),
+            onMouseUpInside: _this.onMouseUpInside.bind(_this),
+            onContextMenuInside: _this.onContextMenuInside.bind(_this),
+            onClose: _this.closeMenu,
+            onMouseOver: _this.onMouseOver.bind(_this),
+            onMouseOut: _this.onMouseOut.bind(_this),
+            onTouchStart: _this.onTouchStart.bind(_this),
+            onTouchEnd: _this.onTouchEnd.bind(_this),
+            onTouchStartOutside: _this.onTouchStartOutside.bind(_this)
         };
         return _this;
     }
+    //</editor-fold>
 
+    //<editor-fold desc="Instance handling">
     /**
      * Only a single menu instance should be visible on screen
      * Instances do close on window click, however they might get instantiated by other means
@@ -133,6 +143,11 @@ var Menu = exports.Menu = function (_Component) {
                 }
             });
         }
+
+        /**
+         * Removes this menu from instances array
+         */
+
     }, {
         key: 'removeInstance',
         value: function removeInstance() {
@@ -142,8 +157,9 @@ var Menu = exports.Menu = function (_Component) {
                 return self === instance;
             });
         }
+        //</editor-fold>
 
-        //<editor-fold desc="Subscribe / unsubscribe">
+        //<editor-fold desc="Emitter subscribe / unsubscribe">
         /**
          * Event subscription
          * Happens when menu becomes visible
@@ -152,11 +168,7 @@ var Menu = exports.Menu = function (_Component) {
     }, {
         key: 'connectToDispatcher',
         value: function connectToDispatcher() {
-            if (this.connected) {
-                return;
-            }
-            _MenuEventDispatcher2.default.getInstance().connect(this.handlers);
-            this.connected = true;
+            _MenuEmitter2.default.getInstance().connect(this.handlers);
         }
 
         /**
@@ -167,58 +179,105 @@ var Menu = exports.Menu = function (_Component) {
     }, {
         key: 'disconnectFromDispatcher',
         value: function disconnectFromDispatcher() {
-            if (!this.connected) {
-                return;
-            }
-            _MenuEventDispatcher2.default.getInstance().disconnect(this.handlers);
-            this.connected = false;
+            _MenuEmitter2.default.getInstance().disconnect(this.handlers);
         }
         //</editor-fold>
 
-        //<editor-fold desc="Event handlers">
+        //<editor-fold desc="Raycast">
         /**
-         * Fires on any click
-         * Closes the menu if clicked outside of the menu
-         * @param e
+         * Fires on context menu inside of the menu
+         * @param ray
          */
 
     }, {
-        key: 'onAnywhereClickOrContextMenu',
-        value: function onAnywhereClickOrContextMenu(e) {
+        key: 'onContextMenuInside',
+        value: function onContextMenuInside(ray) {
+            ray.preventDefault(); // prevent default menu
+        }
+    }, {
+        key: 'onMouseOver',
+        value: function onMouseOver(ray) {
+            var hoverData = _hoverDataBuilder2.default.build(this.state.popups, ray),
+                popups;
+
+            if (!hoverData) {
+                return;
+            }
+
+            // keeping the selection
+            // Note: the selection should be changed immediately, so the UI is snappy
+            // however, we're calling the debounced action below, because the child popup should open with delay
+            popups = this.state.popups;
+            popups[hoverData.popupIndex].selectedIndex = hoverData.itemIndex;
+            this.setState({
+                popups: popups
+            });
+
+            this.processInActionDebounced(hoverData, false);
+        }
+    }, {
+        key: 'onMouseOut',
+        value: function onMouseOut(ray) {
+            var hoverData = _hoverDataBuilder2.default.build(this.state.popups, ray);
+
+            if (hoverData) {
+                this.processOutActionDebounced(hoverData);
+            }
+        }
+
+        /**
+         * Closes the menu if clicked outside of the menu
+         */
+
+    }, {
+        key: 'onMouseDownOutside',
+        value: function onMouseDownOutside() {
             this.closeMenu();
         }
-
-        /**
-         * Fires on context menu
-         * Disables the default browser menu
-         * @param event
-         */
-
     }, {
-        key: 'onItemContextMenu',
-        value: function onItemContextMenu(hoverData) {
-            //event.preventDefault();
+        key: 'onMouseUpInside',
+        value: function onMouseUpInside(ray) {
+            var hoverData = _hoverDataBuilder2.default.build(this.state.popups, ray);
+
+            if (hoverData) {
+                this.onItemClick(hoverData);
+            }
         }
     }, {
-        key: 'onItemMouseLeave',
-        value: function onItemMouseLeave(hoverData) {
-            this.hoverData = null;
-            this.processOutActionDebounced(hoverData);
-            this.props.onItemMouseLeave(hoverData);
+        key: 'onTouchStart',
+        value: function onTouchStart(ray) {
+            var hoverData = _hoverDataBuilder2.default.build(this.state.popups, ray);
+
+            if (hoverData) {
+                this.processInAction(hoverData, false);
+            }
         }
     }, {
-        key: 'onItemMouseEnter',
-        value: function onItemMouseEnter(hoverData) {
-            this.processInActionDebounced(hoverData, false);
-            this.props.onItemMouseEnter(hoverData);
+        key: 'onTouchEnd',
+        value: function onTouchEnd(ray) {
+            var hoverData = _hoverDataBuilder2.default.build(this.state.popups, ray);
+
+            if (hoverData) {
+                this.onItemClick(hoverData);
+            }
+        }
+    }, {
+        key: 'onTouchStartOutside',
+        value: function onTouchStartOutside(ray) {
+            this.closeMenu();
         }
     }, {
         key: 'onItemClick',
         value: function onItemClick(hoverData) {
+            var self = this;
+
             this.processInAction(hoverData, true);
             if (hoverData.isLeafNode() && !hoverData.isPersistant()) {
                 // leaf node
-                this.closeMenu();
+                // defer and allow item handlers to be executed
+                _lodash2.default.defer(function () {
+                    self.closeMenu();
+                });
             }
             this.props.onItemClick(hoverData);
         }
@@ -226,7 +285,7 @@ var Menu = exports.Menu = function (_Component) {
 
         //<editor-fold desc="Actions">
         /**
-         * Shows/hides the menu
+         * Shows/hides menu
          * @param visible
          */
 
@@ -263,51 +322,49 @@ var Menu = exports.Menu = function (_Component) {
         }
 
         /**
-         * Closes the menu
+         * Hides menu
          */
 
     }, {
         key: 'closeMenu',
         value: function closeMenu() {
             this.setMenuVisibility(false);
+            _MenuEmitter2.default.getInstance().unregisterAllParts();
             this.disconnectFromDispatcher();
             this.removeInstance();
+            this.processInActionDebounced.cancel();
+            this.processOutActionDebounced.cancel();
             this.props.onClose();
         }
 
         /**
-         * Handles the menu action
-         * @param popupId
-         * @param itemId
-         * @param itemIndex
+         * Handles the menu item hover or click action
+         * @param hoverData
          * @param shouldFireCallback
          */
 
     }, {
         key: 'processInAction',
         value: function processInAction(hoverData, shouldFireCallback) {
-            var childItems, popups;
-
-            if (!hoverData) {
-                return;
-            }
+            var hoverDataChanged = !hoverData.equals(this.currentHoverData),
+                childItems,
+                popups;
 
             if (shouldFireCallback && hoverData.hasCallback()) {
                 hoverData.fireCallback(hoverData);
             }
 
-            if (this.hoverData !== null && this.hoverData.equals(hoverData)) {
-                return;
+            if (!hoverDataChanged) {
+                return; // it's a child
             }
 
-            this.removeChildPopups(hoverData.popupId);
-
-            //if (this.hoverData !== null && this.hoverData.isSiblingOf(hoverData)) {
-            //    this.removeChildPopups(hoverData.popupId);
+            this.removeChildPopups(hoverData.popupIndex);
+            //if (hoverData.isSiblingOf(this.currentHoverData)) {
+            //    this.removeChildPopups(hoverData.popupIndex);
             //}
 
-            // set new hover data
-            this.hoverData = hoverData;
+            // set current hover data
+            this.currentHoverData = hoverData;
 
             // process child items if exist
             childItems = hoverData.getChildItems();
@@ -316,21 +373,33 @@ var Menu = exports.Menu = function (_Component) {
             }
 
             popups = this.createPopup(childItems);
+
             this.setState({
                 popups: popups
             });
+
+            this.props.onItemMouseEnter(hoverData);
         }
     }, {
         key: 'processOutAction',
         value: function processOutAction(hoverData) {
+            var hoverDataChanged = !hoverData.equals(this.currentHoverData);
+
+            if (!hoverDataChanged) {
+                return; // it's a child
+            }
+
             if (!hoverData || // if mouse off menu
-            hoverData && this.shouldRemoveChildPopups(hoverData, hoverData)) {//
+            hoverData && this.shouldRemoveChildPopups(this.currentHoverData, hoverData)) {
                 // remove child popups if hovering over another menu item in the same popup
                 // or hovering the parent popup
-                //this.removeChildPopups(hoverData.popupId);
+                //this.removeChildPopups(hoverData.popupIndex); // Complex Mac menu behaviour
+                this.props.onItemMouseLeave(hoverData);
             }
         }
+        //</editor-fold>
 
+        //<editor-fold desc="Create/remove popups">
         /**
          * Removes descendants of a popup specified with popupId and sets the state
          * @param popupId
@@ -339,32 +408,24 @@ var Menu = exports.Menu = function (_Component) {
 
     }, {
         key: 'removeChildPopups',
-        value: function removeChildPopups(popupId, callback) {
-            var index = this.getPopupDepth(popupId),
-                popups;
+        value: function removeChildPopups(index) {
+            var popups = this.removePopups(index + 1);
 
-            if (index === -1) {
-                return;
-            }
-
-            popups = this.removePopups(index + 1, callback);
             this.setState({
                 popups: popups
-            }, callback);
-
-            return popups;
+            });
         }
 
         /**
-         * Removes popups with index greater than or equal to startIndex
+         * Removes popups with an index greater than or equal to startIndex
          * @param startIndex
-         * @param callback
          */
 
     }, {
         key: 'removePopups',
         value: function removePopups(startIndex) {
             var popups = startIndex === 0 ? [] : this.state.popups.slice(0, startIndex);
+
             return popups;
         }
     }, {
@@ -375,7 +436,7 @@ var Menu = exports.Menu = function (_Component) {
             }
 
             var popups = clean ? [] : this.state.popups.slice(0),
-                id = 'menu-popup-' + popups.length;
+                id = POPUP_ID_PREFIX + popups.length;
 
             popups.push({
                 id: id,
@@ -385,7 +446,7 @@ var Menu = exports.Menu = function (_Component) {
         }
         //</editor-fold>
 
-        //<editor-fold desc="Lifecycle">
+        //<editor-fold desc="React">
 
     }, {
         key: 'render',
@@ -404,22 +465,19 @@ var Menu = exports.Menu = function (_Component) {
                         layerId: self.props.layerId,
                         autoCleanup: self.props.autoCleanup,
                         onActivate: self.activateHandler },
-                    _react2.default.createElement(_MenuPopup.MenuPopup, {
+                    _react2.default.createElement(_MenuPopup2.default, {
+                        config: self.props.config,
                         classPrefix: self.props.classPrefix,
-                        key: 'menu-popup-' + data.id,
+                        key: POPUP_ID_PREFIX + data.id,
                         popupId: data.id,
                         items: self.state.popups[level].items,
                         popupFactory: self.popupFactory,
                         itemFactory: self.itemFactory,
                         aligner: self.props.aligner,
-                        onItemClick: self.onItemClick,
-                        onItemMouseEnter: self.onItemMouseEnter,
-                        onItemMouseLeave: self.onItemMouseLeave,
-                        onItemContextMenu: self.onItemContextMenu,
                         alignTo: alignTo,
                         hints: hints,
-                        useOffset: level !== 0
-                    })
+                        useOffset: level !== 0,
+                        selectedIndex: data.selectedIndex })
                 );
                 level++;
                 return popup;
@@ -434,18 +492,12 @@ var Menu = exports.Menu = function (_Component) {
     }, {
         key: 'componentDidMount',
         value: function componentDidMount() {
-            //console.log('menu componentDidMount')
             if (this.props.autoCloseOtherMenuInstances) {
                 this.closeOtherMenuInstances();
                 instances = [];
             }
             this.setMenuVisibility(true);
             instances.push(this);
-        }
-    }, {
-        key: 'componentWillUnmount',
-        value: function componentWillUnmount() {
-            //console.log('menu componentWillUnmount')
         }
     }, {
         key: 'componentWillUpdate',
@@ -460,38 +512,11 @@ var Menu = exports.Menu = function (_Component) {
         key: 'activateHandler',
         value: function activateHandler(e) {
             layerElement = e.layer;
-            _MenuEventDispatcher2.default.getInstance().registerPart(layerElement, false);
+            _MenuEmitter2.default.getInstance().registerPart(layerElement, false);
         }
         //</editor-fold>
 
         //<editor-fold desc="Helper">
-        /**
-         * Returns the popup
-         * @param popupId The ID of the popup
-         * @returns {*}
-         */
-
-    }, {
-        key: 'getPopup',
-        value: function getPopup(popupId) {
-            return _lodash2.default.find(this.state.popups, function (popup) {
-                return popup.id === popupId;
-            });
-        }
-
-        /**
-         * Returns the depth of the popup specified by popupId
-         * @param popupId The ID of the popup
-         * @returns {number} Depth starting from 0
-         */
-
-    }, {
-        key: 'getPopupDepth',
-        value: function getPopupDepth(popupId) {
-            return _lodash2.default.findIndex(this.state.popups, function (popup) {
-                return popup.id === popupId;
-            });
-        }
 
         /**
          * Returns true if child popups should be removed
@@ -504,7 +529,7 @@ var Menu = exports.Menu = function (_Component) {
     }, {
         key: 'shouldRemoveChildPopups',
         value: function shouldRemoveChildPopups(previousHoverData, hoverData) {
-            return this.getPopupDepth(previousHoverData.id) >= this.getPopupDepth(hoverData.id) && previousHoverData;
+            return previousHoverData && previousHoverData.popupIndex >= hoverData.popupIndex;
         }
         //</editor-fold>
 
@@ -516,13 +541,15 @@ var Menu = exports.Menu = function (_Component) {
 //<editor-fold desc="Props">
 
 
+exports.default = Menu;
 Menu.propTypes = {
+    config: _react2.default.PropTypes.object, // config object visiting each menu item
     classPrefix: _react2.default.PropTypes.string, // CSS class prefix for all the classes used by this menu
     items: _react2.default.PropTypes.array.isRequired, // menu items (data)
     renderers: _react2.default.PropTypes.object, // item renderers
     mouseEnterDelay: _react2.default.PropTypes.number,
     mouseLeaveDelay: _react2.default.PropTypes.number,
-    autoCloseOtherMenuInstances: _react2.default.PropTypes.bool, // should opening of a menu close other, currently open menu instances
+    autoCloseOtherMenuInstances: _react2.default.PropTypes.bool, // should opening of a menu close other (currently open) menu instances
     onOpen: _react2.default.PropTypes.func,
     onClose: _react2.default.PropTypes.func,
     onItemMouseEnter: _react2.default.PropTypes.func,
@@ -535,9 +562,10 @@ Menu.propTypes = {
     autoCleanup: _react2.default.PropTypes.bool // Liberator's empty layer auto cleanup
 };
 Menu.defaultProps = {
+    config: {},
     classPrefix: '',
     items: [],
-    aligner: new ALIGNER(),
+    aligner: new _Aligner2.default(),
     mouseEnterDelay: MOUSE_ENTER_DELAY,
     mouseLeaveDelay: MOUSE_LEAVE_DELAY,
     autoCloseOtherMenuInstances: true,

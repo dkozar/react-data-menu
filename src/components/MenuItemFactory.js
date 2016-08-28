@@ -3,14 +3,14 @@ import ReactDOM from 'react-dom';
 
 var classnames = require('classnames');
 
-export class MenuItemFactory {
+export default class MenuItemFactory {
 
     constructor(renderers, classPrefix) {
         this.renderers = renderers;
         this.classPrefix = classPrefix;
     }
 
-    createItem(data, key, classes) {
+    createItem(data, key, classes, config) {
         var isExpandable = !!data.items,
             renderer = this.renderers[data.type],
             additions = {},
@@ -30,7 +30,8 @@ export class MenuItemFactory {
             key,
             isExpandable,
             className,
-            classPrefix
+            classPrefix,
+            config
         });
     }
 }

@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import { Dom } from './../util/Dom';
+import Dom from './../util/Dom';
 
 var classNames = require('classnames');
 
-export class MenuPopupFactory {
+export default class MenuPopupFactory {
 
     constructor(classPrefix) {
         this.classPrefix = classPrefix;

@@ -3,7 +3,6 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.LinkRenderer = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -12,6 +11,8 @@ var _react = require('react');
 var _react2 = _interopRequireDefault(_react);
 
 var _Dom = require('./../util/Dom');
+
+var _Dom2 = _interopRequireDefault(_Dom);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -26,7 +27,7 @@ var classnames = require('classnames');
 var DEFAULT_URL = '#',
     DEFAULT_TARGET = '_self';
 
-var LinkRenderer = exports.LinkRenderer = function (_Component) {
+var LinkRenderer = function (_Component) {
     _inherits(LinkRenderer, _Component);
 
     function LinkRenderer() {
@@ -38,7 +39,7 @@ var LinkRenderer = exports.LinkRenderer = function (_Component) {
     _createClass(LinkRenderer, [{
         key: 'render',
         value: function render() {
-            var className = classnames(this.props.className, _Dom.Dom.buildClassNames(this.props.classPrefix, ['menu-item-link'])),
+            var className = classnames(this.props.className, _Dom2.default.buildClassNames(this.props.classPrefix, ['menu-item-link'])),
                 data = this.props.data;
 
             return _react2.default.createElement(
@@ -55,3 +56,5 @@ var LinkRenderer = exports.LinkRenderer = function (_Component) {
 
     return LinkRenderer;
 }(_react.Component);
+
+exports.default = LinkRenderer;

@@ -12,7 +12,7 @@ const texts = [
         'You can specify directions of popups by providing hints.'
     ];
 
-export class TextRotator extends Component {
+export default class TextRotator extends Component {
 
     constructor(props) {
         super(props);

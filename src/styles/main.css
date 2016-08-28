@@ -89,14 +89,30 @@ circle.purple {
     bottom: 0;
 }
 
-/* Help popup */
-.help-drop-down {
+/* Help tooltip */
+.about-drop-down {
     display: inline-block;
     float: right;
 }
-.help-menu-popup {
+.about-menu-button {
+    color: white;
+    background-color: #2ead6d;
+    border: 0;
+    padding: 20px 25px;
+    font-size: 30px;
+    transition: background-color 150ms ease-in;
+}
+.about-menu-button-selected {
+    background-color: #e31d65;
+    transition: background-color 150ms ease-in;
+}
+
+.about-menu-button:hover {
+    background-color: #e31d65;
+    transition: background-color 150ms ease-in;
+}
+.about-menu-popup {
     display: inline-block;
-    white-space: nowrap;
     background-color: #e31d65;
     border-radius: 10px 10px 10px 10px;
     -moz-border-radius: 10px 10px 10px 10px;
@@ -104,35 +120,27 @@ circle.purple {
     padding: 10px 0 10px 0;
     opacity: 0;
     box-shadow: 15px 15px 0 rgba(0, 0, 0, 0.35);
+    max-width: 640px;
 }
-.help-menu-popup.showing {
+.about-menu-popup.showing {
     opacity: 1;
     transition:opacity 150ms ease-in;
 }
-.menu-item-help {
+.about-menu-item {
     font-weight: normal;
-    padding: 10px 20px 10px 20px;
+    padding: 20px 30px;
     color: white;
     background-color: #e31d65;
     font-size: 30px;
 }
-.menu-item-help-title {
+.about-menu-item a {
+    color: #ffcc00;
+}
+.about-menu-item-title {
     font-weight: normal;
     font-style: normal;
-    padding: 10px 20px 10px 20px;
+    margin-bottom: 20px;
 }
-.menu-item-help-text {
-    font-weight: normal;
-    font-style: italic;
-    padding: 10px 20px 10px 20px;
-}
-.menu-item-help-text a {
-    color: #ffcc00;
-}
-.menu-item-help-copyright {
-    font-weight: normal;
-    padding: 10px 20px 10px 20px;
-}
-.menu-item-help-copyright a {
-    color: #ffcc00;
+.about-menu-item-copyright {
+    margin-top: 20px;
 }

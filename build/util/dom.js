@@ -8,7 +8,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Dom = exports.Dom = function () {
+var Dom = function () {
     function Dom() {
         _classCallCheck(this, Dom);
     }
@@ -26,12 +26,12 @@ var Dom = exports.Dom = function () {
             if (childElement == parentElement) {
                 return true;
             }
-            var node = childElement.parentNode;
+            var node = childElement.root;
             while (node != null) {
                 if (node == parentElement) {
                     return true;
                 }
-                node = node.parentNode;
+                node = node.root;
             }
             return false;
         }
@@ -47,10 +47,12 @@ var Dom = exports.Dom = function () {
         value: function buildClassNames(classPrefix, classNames) {
             var len = classNames.length,
                 obj = {},
+                className,
                 i;
 
             for (i = 0; i < len; i++) {
-                obj[classPrefix + classNames[i]] = true;
+                className = classNames[i];
+                obj[classPrefix + className] = !!className; // only if className defined
             }
 
             return obj;
@@ -59,3 +61,5 @@ var Dom = exports.Dom = function () {
 
     return Dom;
 }();
+
+exports.default = Dom;

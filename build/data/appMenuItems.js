@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var AppMenuItems = exports.AppMenuItems = function AppMenuItems(binder) {
+var AppMenuItems = function AppMenuItems(binder) {
     _classCallCheck(this, AppMenuItems);
 
     return [{
@@ -20,3 +20,5 @@ var AppMenuItems = exports.AppMenuItems = function AppMenuItems(binder) {
         callback: binder('clear')
     }];
 };
+
+exports.default = AppMenuItems;

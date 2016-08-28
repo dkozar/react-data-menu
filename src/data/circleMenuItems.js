@@ -1,4 +1,4 @@
-export class CircleMenuItems {
+export default class CircleMenuItems {
     constructor(binder) {
         return [{
             type: 'label',

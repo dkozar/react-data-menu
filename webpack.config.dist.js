@@ -5,12 +5,12 @@ module.exports = {
   context: __dirname,
   devtool: 'source-map',
   entry: {
-    'react-liberator': './index.js'
+    'react-data-menu': './index.js'
   },
   output: {
     path: __dirname + "/dist",
-    filename: './react-liberator.js',
-    sourceMapFilename: './react-liberator.js.map',
+    filename: './react-data-menu.js',
+    sourceMapFilename: './react-data-menu.js.map',
     devtoolModuleFilenameTemplate: '../[resource-path]',
     libraryTarget: "umd",
     library: "ReactLiberator"

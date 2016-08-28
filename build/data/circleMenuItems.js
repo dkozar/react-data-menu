@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var CircleMenuItems = exports.CircleMenuItems = function CircleMenuItems(binder) {
+var CircleMenuItems = function CircleMenuItems(binder) {
     _classCallCheck(this, CircleMenuItems);
 
     return [{
@@ -59,3 +59,5 @@ var CircleMenuItems = exports.CircleMenuItems = function CircleMenuItems(binder)
         callback: binder('remove-circle')
     }];
 };
+
+exports.default = CircleMenuItems;

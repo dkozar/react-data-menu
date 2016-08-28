@@ -2,7 +2,7 @@ import RectUtil from './/RectUtil.js';
 import RectAlign from './RectAlign.js';
 import ViewportUtil from './ViewportUtil.js';
 
-export class Aligner {
+export default class Aligner {
 
     align(target, alignTo, hints, handle) {
         var offset = {

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Dom } from './../util/Dom';
+import Dom from './../util/Dom';
 
 var classnames = require('classnames');
 

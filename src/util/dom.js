@@ -1,4 +1,4 @@
-export class Dom {
+export default class Dom {
     /**
      * Returns true if parent element contains child, or parent is child
      * @param parentElement
@@ -9,12 +9,12 @@ export class Dom {
         if (childElement == parentElement) {
             return true;
         }
-        var node = childElement.parentNode;
+        var node = childElement.root;
         while (node != null) {
             if (node == parentElement) {
                 return true;
             }
-            node = node.parentNode;
+            node = node.root;
         }
         return false;
     }
@@ -27,10 +27,12 @@ export class Dom {
     static buildClassNames(classPrefix, classNames) {
         var len = classNames.length,
             obj = {},
+            className,
             i;
 
         for (i = 0; i < len; i ++) {
-            obj[classPrefix + classNames[i]] = true;
+            className = classNames[i];
+            obj[classPrefix + className] = !!className; // only if className defined
         }
 
         return obj;

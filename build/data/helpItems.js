@@ -7,5 +7,7 @@ var helpItems = exports.helpItems = [{
     type: 'help',
     copyright: '2016 by Danko Kozar',
     reactUrl: 'https://facebook.github.io/react/',
-    copyrightUrl: 'http://dankokozar.com'
+    raycastUrl: 'https://github.com/dkozar/raycast-dom/',
+    copyrightUrl: 'https://twitter.com/DankoKozar',
+    persist: true
 }];

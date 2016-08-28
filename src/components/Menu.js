@@ -1,37 +1,29 @@
 import _ from 'lodash';
 import React, { Component } from 'react';
-import { Aligner } from './../util/Aligner.js';
-import { Dom } from './../util/Dom';
-import MenuEventDispatcher from './../util/MenuEventDispatcher.js';
-import { MenuPopup } from './MenuPopup';
-import { MenuPopupFactory } from './MenuPopupFactory.js';
-import { MenuItemFactory } from './MenuItemFactory.js';
+import Aligner from './../util/Aligner.js';
+import { DefaultRenderers } from './../renderers/defaultRenderers.js';
+import Dom from './../util/Dom';
+import HoverData from './../util/hoverData';
+import HoverDataBuilder from './../util/hoverDataBuilder';
+import MenuEmitter from './../emitters/MenuEmitter.js';
+import MenuItemFactory from './MenuItemFactory.js';
+import MenuPopup from './MenuPopup';
+import MenuPopupFactory from './MenuPopupFactory.js';
 import Liberator from 'react-liberator';
 
-//<editor-fold desc="Default renderers">
-import { Button } from './../renderers/ButtonRenderer.js';
-import { Label } from './../renderers/LabelRenderer.js';
-import { Separator } from './../renderers/SeparatorRenderer.js';
-//</editor-fold>
+export const POPUP_ID_PREFIX = 'menu-popup-';
 
-const DEFAULT_LAYER_ID = '___react-data-menu___';
-
-const MOUSE_LEAVE_DELAY = 100,
+const DEFAULT_LAYER_ID = 'react-data-menu-popup',
+    MOUSE_LEAVE_DELAY = 100,
     MOUSE_ENTER_DELAY = 200,
-    RENDERERS = {
-        'button': Button,
-        'label': Label,
-        '-': Separator
-    },
-    ALIGNER = Aligner,
     HINTS = function() {
         return ['es', 'em', 'ee', 'ws', 'wm', 'we'];
     },
     ALIGN_TO = function(level) {
         return !level ?
             (this.props.alignTo || this.props.position) :
-            (this.hoverData ?
-                this.hoverData.getElement() :
+            (this.currentHoverData ?
+                this.currentHoverData.getElement() :
                 null);
     };
 
@@ -40,17 +32,14 @@ const MOUSE_LEAVE_DELAY = 100,
 var instances = [],
     layerElement;
 
-export class Menu extends Component {
+export default class Menu extends Component {
 
+    //<editor-fold desc="Constructor">
     constructor(props) {
         super(props);
 
         this.onItemClick = this.onItemClick.bind(this);
-        this.onItemContextMenu = this.onItemContextMenu.bind(this);
-        this.onItemMouseLeave = this.onItemMouseLeave.bind(this);
-        this.onItemMouseEnter = this.onItemMouseEnter.bind(this);
         this.closeMenu = this.closeMenu.bind(this);
-        this.onAnywhereClickOrContextMenu = this.onAnywhereClickOrContextMenu.bind(this);
         this.createPopup = this.createPopup.bind(this);
         this.removeChildPopups = this.removeChildPopups.bind(this);
         this.removePopups = this.removePopups.bind(this);
@@ -60,7 +49,7 @@ export class Menu extends Component {
         this.processOutActionDebounced = _.debounce(this.processOutAction.bind(this), MOUSE_LEAVE_DELAY);
 
         this.popupFactory = new MenuPopupFactory(this.props.classPrefix);
-        this.itemFactory = new MenuItemFactory(_.assign(RENDERERS, props.renderers), props.classPrefix);
+        this.itemFactory = new MenuItemFactory(_.assign(DefaultRenderers, props.renderers), props.classPrefix);
 
         this.state = {
             visible: false,
@@ -68,15 +57,23 @@ export class Menu extends Component {
             popups: []
         };
 
-        this.hoverData = null;
+        this.currentHoverData = null;
 
         this.handlers = {
-            onClickOutside: this.onAnywhereClickOrContextMenu,
-            onContextMenu: this.onAnywhereClickOrContextMenu,
-            onClose: this.closeMenu
+            onMouseDownOutside: this.onMouseDownOutside.bind(this),
+            onMouseUpInside: this.onMouseUpInside.bind(this),
+            onContextMenuInside: this.onContextMenuInside.bind(this),
+            onClose: this.closeMenu,
+            onMouseOver: this.onMouseOver.bind(this),
+            onMouseOut: this.onMouseOut.bind(this),
+            onTouchStart: this.onTouchStart.bind(this),
+            onTouchEnd: this.onTouchEnd.bind(this),
+            onTouchStartOutside: this.onTouchStartOutside.bind(this)
         };
     }
+    //</editor-fold>
 
+    //<editor-fold desc="Instance handling">
     /**
      * Only a single menu instance should be visible on screen
      * Instances do close on window click, however they might get instantiated by other means
@@ -92,6 +89,9 @@ export class Menu extends Component {
         });
     }
 
+    /**
+     * Removes this menu from instances array
+     */
     removeInstance() {
         var self = this;
 
@@ -99,18 +99,15 @@ export class Menu extends Component {
             return self === instance;
         });
     }
+    //</editor-fold>
 
-    //<editor-fold desc="Subscribe / unsubscribe">
+    //<editor-fold desc="Emitter subscribe / unsubscribe">
     /**
      * Event subscription
      * Happens when menu becomes visible
      */
     connectToDispatcher() {
-        if (this.connected) {
-            return;
-        }
-        MenuEventDispatcher.getInstance().connect(this.handlers);
-        this.connected = true;
+        MenuEmitter.getInstance().connect(this.handlers);
     }
 
     /**
@@ -118,48 +115,91 @@ export class Menu extends Component {
      * Happens when menu becomes hidden
      */
     disconnectFromDispatcher() {
-        if (!this.connected) {
-            return;
-        }
-        MenuEventDispatcher.getInstance().disconnect(this.handlers);
-        this.connected = false;
+        MenuEmitter.getInstance().disconnect(this.handlers);
     }
     //</editor-fold>
 
-    //<editor-fold desc="Event handlers">
+    //<editor-fold desc="Raycast">
     /**
-     * Fires on any click
-     * Closes the menu if clicked outside of the menu
-     * @param e
+     * Fires on context menu inside of the menu
+     * @param ray
      */
-    onAnywhereClickOrContextMenu(e) {
+    onContextMenuInside(ray) {
+        ray.preventDefault(); // prevent default menu
+    }
+
+    onMouseOver(ray) {
+        var hoverData = HoverDataBuilder.build(this.state.popups, ray),
+            popups;
+
+        if (!hoverData) {
+            return;
+        }
+
+        // keeping the selection
+        // Note: the selection should be changed immediately, so the UI is snappy
+        // however, we're calling the debounced action below, because the child popup should open with delay
+        popups = this.state.popups;
+        popups[hoverData.popupIndex].selectedIndex = hoverData.itemIndex;
+        this.setState({
+            popups
+        });
+
+        this.processInActionDebounced(hoverData, false);
+    }
+
+    onMouseOut(ray) {
+        var hoverData = HoverDataBuilder.build(this.state.popups, ray);
+
+        if (hoverData) {
+            this.processOutActionDebounced(hoverData);
+        }
+    }
+
+    /**
+     * Closes the menu if clicked outside of the menu
+     */
+    onMouseDownOutside() {
         this.closeMenu();
     }
 
-    /**
-     * Fires on context menu
-     * Disables the default browser menu
-     * @param event
-     */
-    onItemContextMenu(hoverData) {
-        //event.preventDefault();
+    onMouseUpInside(ray) {
+        var hoverData = HoverDataBuilder.build(this.state.popups, ray);
+
+        if (hoverData) {
+            this.onItemClick(hoverData);
+        }
     }
 
-    onItemMouseLeave(hoverData) {
-        this.hoverData = null;
-        this.processOutActionDebounced(hoverData);
-        this.props.onItemMouseLeave(hoverData);
+    onTouchStart(ray) {
+        var hoverData = HoverDataBuilder.build(this.state.popups, ray);
+
+        if (hoverData) {
+            this.processInAction(hoverData, false);
+        }
     }
 
-    onItemMouseEnter(hoverData) {
-        this.processInActionDebounced(hoverData, false);
-        this.props.onItemMouseEnter(hoverData);
+    onTouchEnd(ray) {
+        var hoverData = HoverDataBuilder.build(this.state.popups, ray);
+
+        if (hoverData) {
+            this.onItemClick(hoverData);
+        }
+    }
+
+    onTouchStartOutside(ray) {
+        this.closeMenu();
     }
 
     onItemClick(hoverData) {
+        var self = this;
+
         this.processInAction(hoverData, true);
         if (hoverData.isLeafNode() && !hoverData.isPersistant()) { // leaf node
-            this.closeMenu();
+            // defer and allow item handlers to be executed
+            _.defer(function() {
+                self.closeMenu();
+            });
         }
         this.props.onItemClick(hoverData);
     }
@@ -167,7 +207,7 @@ export class Menu extends Component {
 
     //<editor-fold desc="Actions">
     /**
-     * Shows/hides the menu
+     * Shows/hides menu
      * @param visible
      */
     setMenuVisibility(visible) {
@@ -201,45 +241,42 @@ export class Menu extends Component {
     }
 
     /**
-     * Closes the menu
+     * Hides menu
      */
     closeMenu() {
         this.setMenuVisibility(false);
+        MenuEmitter.getInstance().unregisterAllParts();
         this.disconnectFromDispatcher();
         this.removeInstance();
+        this.processInActionDebounced.cancel();
+        this.processOutActionDebounced.cancel();
         this.props.onClose();
     }
 
     /**
-     * Handles the menu action
-     * @param popupId
-     * @param itemId
-     * @param itemIndex
+     * Handles the menu item hover or click action
+     * @param hoverData
      * @param shouldFireCallback
      */
     processInAction(hoverData, shouldFireCallback) {
-        var childItems, popups;
-
-        if (!hoverData) {
-            return;
-        }
+        var hoverDataChanged = !hoverData.equals(this.currentHoverData),
+            childItems, popups;
 
         if (shouldFireCallback && hoverData.hasCallback()) {
             hoverData.fireCallback(hoverData);
         }
 
-        if (this.hoverData !== null && this.hoverData.equals(hoverData)) {
-            return;
+        if (!hoverDataChanged) {
+            return; // it's a child
         }
 
-        this.removeChildPopups(hoverData.popupId);
-
-        //if (this.hoverData !== null && this.hoverData.isSiblingOf(hoverData)) {
-        //    this.removeChildPopups(hoverData.popupId);
+        this.removeChildPopups(hoverData.popupIndex);
+        //if (hoverData.isSiblingOf(this.currentHoverData)) {
+        //    this.removeChildPopups(hoverData.popupIndex);
         //}
 
-        // set new hover data
-        this.hoverData = hoverData;
+        // set current hover data
+        this.currentHoverData = hoverData;
 
         // process child items if exist
         childItems = hoverData.getChildItems();
@@ -248,48 +285,52 @@ export class Menu extends Component {
         }
 
         popups = this.createPopup(childItems);
+
         this.setState({
             popups
         });
+
+        this.props.onItemMouseEnter(hoverData);
     }
 
     processOutAction(hoverData) {
+        var hoverDataChanged = !hoverData.equals(this.currentHoverData);
+
+        if (!hoverDataChanged) {
+            return; // it's a child
+        }
+
         if (!hoverData || // if mouse off menu
-            hoverData && this.shouldRemoveChildPopups(hoverData, hoverData)) { //
+            hoverData && this.shouldRemoveChildPopups(this.currentHoverData, hoverData)) {
             // remove child popups if hovering over another menu item in the same popup
             // or hovering the parent popup
-            //this.removeChildPopups(hoverData.popupId);
+            //this.removeChildPopups(hoverData.popupIndex); // Complex Mac menu behaviour
+            this.props.onItemMouseLeave(hoverData);
         }
     }
+    //</editor-fold>
 
+    //<editor-fold desc="Create/remove popups">
     /**
      * Removes descendants of a popup specified with popupId and sets the state
      * @param popupId
      * @param callback
      */
-    removeChildPopups(popupId, callback) {
-        var index = this.getPopupDepth(popupId),
-            popups;
+    removeChildPopups(index) {
+        var popups = this.removePopups(index + 1);
 
-        if (index === -1) {
-            return;
-        }
-
-        popups = this.removePopups(index + 1, callback);
         this.setState({
-            popups,
-        }, callback);
-
-        return popups;
+            popups
+        });
     }
 
     /**
-     * Removes popups with index greater than or equal to startIndex
+     * Removes popups with an index greater than or equal to startIndex
      * @param startIndex
-     * @param callback
      */
     removePopups(startIndex) {
         var popups = startIndex === 0 ? [] : this.state.popups.slice(0, startIndex);
+
         return popups;
     }
 
@@ -299,7 +340,7 @@ export class Menu extends Component {
         }
 
         var popups = clean ? [] : this.state.popups.slice(0),
-            id = 'menu-popup-' + popups.length;
+            id = POPUP_ID_PREFIX + popups.length;
 
         popups.push({
             id,
@@ -309,7 +350,7 @@ export class Menu extends Component {
     }
     //</editor-fold>
 
-    //<editor-fold desc="Lifecycle">
+    //<editor-fold desc="React">
     render() {
         var level = 0,
             self = this,
@@ -326,21 +367,18 @@ export class Menu extends Component {
                         autoCleanup={self.props.autoCleanup}
                         onActivate={self.activateHandler}>
                         <MenuPopup
+                            config={self.props.config}
                             classPrefix={self.props.classPrefix}
-                            key={'menu-popup-' + data.id}
+                            key={POPUP_ID_PREFIX + data.id}
                             popupId={data.id}
                             items={self.state.popups[level].items}
                             popupFactory={self.popupFactory}
                             itemFactory={self.itemFactory}
                             aligner={self.props.aligner}
-                            onItemClick={self.onItemClick}
-                            onItemMouseEnter={self.onItemMouseEnter}
-                            onItemMouseLeave={self.onItemMouseLeave}
-                            onItemContextMenu={self.onItemContextMenu}
                             alignTo={alignTo}
                             hints={hints}
                             useOffset={level !== 0}
-                        />
+                            selectedIndex={data.selectedIndex} />
 
                     </Liberator>
                 );
@@ -356,17 +394,12 @@ export class Menu extends Component {
     }
 
     componentDidMount() {
-        //console.log('menu componentDidMount')
         if (this.props.autoCloseOtherMenuInstances) {
             this.closeOtherMenuInstances();
             instances = [];
         }
         this.setMenuVisibility(true);
         instances.push(this);
-    }
-
-    componentWillUnmount() {
-        //console.log('menu componentWillUnmount')
     }
 
     componentWillUpdate(nextProps, nextState) {
@@ -379,32 +412,11 @@ export class Menu extends Component {
 
     activateHandler(e) {
         layerElement = e.layer;
-        MenuEventDispatcher.getInstance().registerPart(layerElement, false);
+        MenuEmitter.getInstance().registerPart(layerElement, false);
     }
     //</editor-fold>
 
     //<editor-fold desc="Helper">
-    /**
-     * Returns the popup
-     * @param popupId The ID of the popup
-     * @returns {*}
-     */
-    getPopup(popupId) {
-        return _.find(this.state.popups, function(popup) {
-            return popup.id === popupId;
-        });
-    }
-
-    /**
-     * Returns the depth of the popup specified by popupId
-     * @param popupId The ID of the popup
-     * @returns {number} Depth starting from 0
-     */
-    getPopupDepth(popupId) {
-        return _.findIndex(this.state.popups, function(popup) {
-            return popup.id === popupId;
-        });
-    }
 
     /**
      * Returns true if child popups should be removed
@@ -414,20 +426,21 @@ export class Menu extends Component {
      * @returns {*}
      */
     shouldRemoveChildPopups(previousHoverData, hoverData) {
-        return this.getPopupDepth(previousHoverData.id) >= this.getPopupDepth(hoverData.id) &&
-            previousHoverData;
+        return previousHoverData &&
+            previousHoverData.popupIndex >= hoverData.popupIndex;
     }
     //</editor-fold>
 }
 
 //<editor-fold desc="Props">
 Menu.propTypes = {
+    config: React.PropTypes.object, // config object visiting each menu item
     classPrefix: React.PropTypes.string, // CSS class prefix for all the classes used by this menu
     items: React.PropTypes.array.isRequired, // menu items (data)
     renderers: React.PropTypes.object, // item renderers
     mouseEnterDelay: React.PropTypes.number,
     mouseLeaveDelay: React.PropTypes.number,
-    autoCloseOtherMenuInstances: React.PropTypes.bool, // should opening of a menu close other, currently open menu instances
+    autoCloseOtherMenuInstances: React.PropTypes.bool, // should opening of a menu close other (currently open) menu instances
     onOpen: React.PropTypes.func,
     onClose: React.PropTypes.func,
     onItemMouseEnter: React.PropTypes.func,
@@ -440,9 +453,10 @@ Menu.propTypes = {
     autoCleanup: React.PropTypes.bool // Liberator's empty layer auto cleanup
 };
 Menu.defaultProps = {
+    config: {},
     classPrefix: '',
     items: [],
-    aligner: new ALIGNER(),
+    aligner: new Aligner(),
     mouseEnterDelay: MOUSE_ENTER_DELAY,
     mouseLeaveDelay: MOUSE_LEAVE_DELAY,
     autoCloseOtherMenuInstances: true,

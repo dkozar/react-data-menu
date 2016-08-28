@@ -3,9 +3,13 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.MenuPopup = undefined;
+exports.ITEM_ID_PREFIX = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
 
 var _react = require('react');
 
@@ -17,11 +21,11 @@ var _reactDom2 = _interopRequireDefault(_reactDom);
 
 var _Aligner = require('./../util/Aligner.js');
 
+var _Aligner2 = _interopRequireDefault(_Aligner);
+
 var _HoverData = require('./../util/HoverData.js');
 
-var _lodash = require('lodash');
-
-var _lodash2 = _interopRequireDefault(_lodash);
+var _HoverData2 = _interopRequireDefault(_HoverData);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -31,9 +35,13 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var ITEM_ID_PREFIX = exports.ITEM_ID_PREFIX = 'menu-item-';
+
+var DEFAULT_ITEM_RENDERER_TYPE = 'button';
+
 var classnames = require('classnames');
 
-var MenuPopup = exports.MenuPopup = function (_Component) {
+var MenuPopup = function (_Component) {
     _inherits(MenuPopup, _Component);
 
     function MenuPopup(props) {
@@ -42,66 +50,19 @@ var MenuPopup = exports.MenuPopup = function (_Component) {
         var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(MenuPopup).call(this, props));
 
         _this.aligner = _this.props.aligner;
-        _this.onItemClick = _this.onItemClick.bind(_this);
-        _this.onPopupContextMenu = _this.onPopupContextMenu.bind(_this);
-        _this.onItemMouseEnter = _this.onItemMouseEnter.bind(_this);
-        _this.onItemMouseLeave = _this.onItemMouseLeave.bind(_this);
         _this.state = {
-            indexMap: {},
-            showing: false,
-            selectedIndex: -1
+            showing: false
         };
         return _this;
     }
 
     _createClass(MenuPopup, [{
-        key: 'buildHoverData',
-        value: function buildHoverData(data, e) {
-            var popupId = this.props.popupId,
-                buttonId = e.currentTarget.id,
-                index = this.state.indexMap[buttonId],
-                self = this;
-
-            self.setState({
-                selectedIndex: index
-            });
-
-            return new _HoverData.HoverData(popupId, buttonId, index, e.currentTarget, data);
-        }
-    }, {
-        key: 'onPopupContextMenu',
-        value: function onPopupContextMenu(e) {
-            e.preventDefault();
-        }
-    }, {
-        key: 'onItemClick',
-        value: function onItemClick(data, e) {
-            this.props.onItemClick(this.buildHoverData(data, e));
-        }
-    }, {
-        key: 'onItemContextMenu',
-        value: function onItemContextMenu(data, e) {
-            e.preventDefault();
-            this.props.onItemContextMenu(this.buildHoverData(data, e));
-        }
-    }, {
-        key: 'onItemMouseEnter',
-        value: function onItemMouseEnter(data, e) {
-            this.props.onItemMouseEnter(this.buildHoverData(data, e));
-        }
-    }, {
-        key: 'onItemMouseLeave',
-        value: function onItemMouseLeave(data, e) {
-            this.props.onItemMouseLeave(this.buildHoverData(data, e));
-        }
-    }, {
         key: 'render',
         value: function render() {
             var index = 0,
                 self = this,
                 popupFactory = this.props.popupFactory,
                 itemFactory = this.props.itemFactory,
-                indexMap = this.state.indexMap,
                 key,
                 children,
                 menuItem,
@@ -110,27 +71,17 @@ var MenuPopup = exports.MenuPopup = function (_Component) {
             children = this.props.items ? this.props.items.map(function (data) {
                 var classes = {};
 
-                key = 'menu-item-' + index;
-                indexMap[key] = index;
+                key = ITEM_ID_PREFIX + index;
 
-                if (self.state.selectedIndex === index) {
+                if (self.props.selectedIndex === index) {
                     classes[self.props.classPrefix + 'menu-item-selected'] = true;
                 }
 
                 data = self.expandDescriptor(data);
 
-                // overriding standard handlers with data handlers
-                var handlers = _lodash2.default.assign({
-                    onClick: self.onItemClick.bind(self, data),
-                    onContextMenu: self.onItemContextMenu.bind(self, data),
-                    onMouseEnter: self.onItemMouseEnter.bind(self, data),
-                    onMouseLeave: self.onItemMouseLeave.bind(self, data)
-                }, data.handlers);
-
-                menuItem = itemFactory.createItem(_lodash2.default.assign({}, data, { // BUG FIX "{}, "
-                    id: key,
-                    handlers: handlers
-                }), key, classnames(classes));
+                menuItem = itemFactory.createItem(_lodash2.default.assign({}, data, {
+                    id: key
+                }), key, classnames(classes), self.props.config);
 
                 index++;
 
@@ -143,15 +94,10 @@ var MenuPopup = exports.MenuPopup = function (_Component) {
                 top: this.props.y + 'px'
             };
 
-            var handlers = {
-                onContextMenu: self.onPopupContextMenu
-            };
-
             return popupFactory.createItem(_lodash2.default.assign({}, {
                 popupId: this.props.popupId,
                 styles: styles,
                 children: children,
-                handlers: handlers,
                 showing: this.state.showing
             }));
         }
@@ -187,7 +133,7 @@ var MenuPopup = exports.MenuPopup = function (_Component) {
                 };
             }
             if (!data.type) {
-                data.type = 'button'; // default renderer type
+                data.type = DEFAULT_ITEM_RENDERER_TYPE;
             }
             return data;
         }
@@ -196,15 +142,18 @@ var MenuPopup = exports.MenuPopup = function (_Component) {
     return MenuPopup;
 }(_react.Component);
 
+exports.default = MenuPopup;
+
 MenuPopup.propTypes = {
+    config: _react2.default.PropTypes.object, // config object visiting every menu item
     classPrefix: _react2.default.PropTypes.string,
     x: _react2.default.PropTypes.number,
     y: _react2.default.PropTypes.number,
     items: _react2.default.PropTypes.arrayOf(_react2.default.PropTypes.oneOfType([_react2.default.PropTypes.object, _react2.default.PropTypes.string])),
     popupId: _react2.default.PropTypes.string.isRequired,
     useOffset: _react2.default.PropTypes.bool.isRequired,
-    onPopupContextMenu: _react2.default.PropTypes.func.isRequired,
-    hints: _react2.default.PropTypes.arrayOf(_react2.default.PropTypes.string)
+    hints: _react2.default.PropTypes.arrayOf(_react2.default.PropTypes.string).isRequired,
+    selectedIndex: _react2.default.PropTypes.number.isRequired
 };
 MenuPopup.defaultProps = {
     classPrefix: '',
@@ -212,7 +161,6 @@ MenuPopup.defaultProps = {
     y: 0,
     items: [],
     alignTo: null,
-    hints: ['right', 'left', 'bottom', 'top', 'bottom'],
     useOffset: false,
-    onPopupContextMenu: function onPopupContextMenu(e) {}
+    selectedIndex: -1
 };

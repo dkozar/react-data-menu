@@ -1,4 +1,4 @@
-export class AppMenuItems {
+export default class AppMenuItems {
     constructor(binder) {
         return [{
             type: 'label',
