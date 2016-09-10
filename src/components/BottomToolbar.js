@@ -2,15 +2,15 @@ import React, { Component } from 'react';
 import DropdownMenu from './DropdownMenu.js';
 import { items1 } from './../data/items1.js';
 import { items2 } from './../data/items2.js';
-import { helpItems } from './../data/helpItems.js';
-import HelpRenderer from './../renderers/HelpRenderer.js';
+import { aboutItems } from './../data/aboutItems.js';
+import AboutRenderer from './../renderers/AboutRenderer.js';
 
 export default class BottomToolbar extends Component {
     render() {
         var hints = function() {
             return ['ne']
         }, renderers = {
-            'help': HelpRenderer
+            'about': AboutRenderer
         };
 
         /* Bottom toolbar - let's not toggle these buttons */
@@ -27,7 +27,7 @@ export default class BottomToolbar extends Component {
 
                 { /* Tooltip example (single item menu and custom button) */ }
                 <DropdownMenu
-                    items={helpItems}
+                    items={aboutItems}
                     classPrefix='about-'
                     toggleMode={false}
                     openOnMouseOver={true}

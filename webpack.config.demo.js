@@ -20,6 +20,9 @@ module.exports = {
         }, {
             test: /\.css$/,
             loader: ExtractTextPlugin.extract("style-loader", "css-loader")
+        }, {
+            test: /\.less$/,
+            loader: ExtractTextPlugin.extract("style", "css!less")
         }]
     },
     plugins: [

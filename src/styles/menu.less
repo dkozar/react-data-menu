@@ -1,0 +1,114 @@
+@import "colors";
+
+.drop-down {
+    display: inline-block;
+}
+
+.menu {
+
+    &-button {
+        color: white;
+        background-color: @green;
+        border: 0;
+        padding: 20px 25px;
+        font-size: 30px;
+        transition: background-color 150ms ease-in;
+
+        &-selected {
+            background-color: @purple;
+            transition: background-color 150ms ease-in;
+        }
+
+        &:hover {
+            background-color: @purple;
+            transition: background-color 150ms ease-in;
+        }
+    }
+
+    &-popup {
+        display: inline-block;
+        white-space: nowrap;
+        background-color: @menu-popup;
+        border-radius: 10px 10px 10px 10px;
+        -moz-border-radius: 10px 10px 10px 10px;
+        -webkit-border-radius: 10px 10px 10px 10px;
+        padding: 10px 0 10px 0;
+        opacity: 0;
+        box-shadow: 15px 15px 0 @menu-popup-shadow;
+
+        &.showing {
+            opacity: 1;
+            transition:opacity 150ms ease-in;
+        }
+    }
+
+    &-item {
+        display: block;
+        width: 100%;
+        color: white;
+        background-color: @menu-popup;
+        padding: 15px 25px;
+        font-size: 30px;
+        border: 0;
+
+        &-button {
+            line-height: 40px;
+            transition: background-color 150ms ease-in;
+
+            &:hover {
+                background-color: @purple;
+                transition: background-color 150ms ease-in;
+            }
+
+            span {
+                line-height: inherit;
+            }
+        }
+
+        &-selected {
+            background-color: @purple;
+            transition: background-color 150ms ease-in;
+        }
+
+        &-label {
+            font-weight: normal;
+            font-style: italic;
+            padding: 10px 20px 10px 20px;
+        }
+
+        &-separator {
+            border: 0;
+            height: 0;
+            width: auto;
+            border-bottom: 4px dotted rgba(255, 255, 255, 0.35);
+            padding: 0;
+            margin: 10px 0;
+        }
+
+        &:focus {
+            outline:0;
+        }
+
+        span {
+            float: left;
+        }
+
+        &-expandable {
+            padding-right: 0;
+        }
+
+        &-link {
+            a {
+                color: #ffcc00;
+            }
+        }
+    }
+}
+
+.fa.fa-chevron-right {
+    float: right;
+    line-height: inherit;
+    margin-left: 15px;
+    padding-right: 5px;
+    font-size: 0.5em;
+}

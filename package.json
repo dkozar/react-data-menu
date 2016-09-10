@@ -1,6 +1,6 @@
 {
   "name": "react-data-menu",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Smart data-driven menu rendered in an overlay",
   "scripts": {
     "hot": "node hotServer.js",
@@ -62,6 +62,8 @@
     "karma-mocha": "^0.2.2",
     "karma-sourcemap-loader": "^0.3.7",
     "karma-webpack": "^1.7.0",
+    "less": "^2.7.1",
+    "less-loader": "^2.2.3",
     "mocha": "^2.4.5",
     "react-addons-test-utils": "^0.14.7",
     "react-wrappy-text": "^1.0.7",

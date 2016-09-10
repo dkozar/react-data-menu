@@ -77,8 +77,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 var Emitter = require('raycast-dom').Emitter.default;
 
-require('./styles/main.css');
-require('./styles/menu.css');
+require('./styles/main.less');
+require('./styles/menu.less');
 
 var rootNode, canvasNode;
 

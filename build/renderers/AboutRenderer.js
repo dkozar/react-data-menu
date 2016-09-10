@@ -18,16 +18,16 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var HelpRenderer = function (_Component) {
-    _inherits(HelpRenderer, _Component);
+var AboutRenderer = function (_Component) {
+    _inherits(AboutRenderer, _Component);
 
-    function HelpRenderer() {
-        _classCallCheck(this, HelpRenderer);
+    function AboutRenderer() {
+        _classCallCheck(this, AboutRenderer);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(HelpRenderer).apply(this, arguments));
+        return _possibleConstructorReturn(this, Object.getPrototypeOf(AboutRenderer).apply(this, arguments));
     }
 
-    _createClass(HelpRenderer, [{
+    _createClass(AboutRenderer, [{
         key: 'render',
         value: function render() {
             var data = this.props.data;
@@ -41,11 +41,9 @@ var HelpRenderer = function (_Component) {
                     'This application is created using ReactJS and Raycast.',
                     _react2.default.createElement('br', null)
                 ),
-                _react2.default.createElement('i', { className: 'fa fa-arrow-right' }),
-                ' ',
                 _react2.default.createElement(
-                    'i',
-                    null,
+                    'div',
+                    { className: 'about-menu-item-library' },
                     _react2.default.createElement(
                         'a',
                         { href: data.reactUrl, target: '_blank' },
@@ -53,12 +51,9 @@ var HelpRenderer = function (_Component) {
                     ),
                     ' is a Javascript library for building user interfaces.'
                 ),
-                _react2.default.createElement('br', null),
-                _react2.default.createElement('i', { className: 'fa fa-arrow-right' }),
-                ' ',
                 _react2.default.createElement(
-                    'i',
-                    null,
+                    'div',
+                    { className: 'about-menu-item-library' },
                     _react2.default.createElement(
                         'a',
                         { href: data.raycastUrl, target: '_blank' },
@@ -66,7 +61,6 @@ var HelpRenderer = function (_Component) {
                     ),
                     ' is an event framework based on emitting rays onto the user interface.'
                 ),
-                _react2.default.createElement('br', null),
                 _react2.default.createElement(
                     'div',
                     { className: 'about-menu-item-copyright' },
@@ -82,7 +76,7 @@ var HelpRenderer = function (_Component) {
         }
     }]);
 
-    return HelpRenderer;
+    return AboutRenderer;
 }(_react.Component);
 
-exports.default = HelpRenderer;
+exports.default = AboutRenderer;

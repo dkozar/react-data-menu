@@ -18,8 +18,8 @@ var Emitter = require('raycast-dom').Emitter.default;
 
 import { PURPLE, ORANGE } from './util/colors';
 
-require('./styles/main.css');
-require('./styles/menu.css');
+require('./styles/main.less');
+require('./styles/menu.less');
 
 var rootNode, canvasNode;
 

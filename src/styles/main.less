@@ -1,0 +1,156 @@
+@import "colors";
+
+body {
+    margin: 0;
+    background: @app;
+}
+
+.green {
+    background-color: @green;
+}
+.red {
+    background-color: @red;
+}
+.purple {
+    background-color: @purple;
+}
+.blue {
+    background-color: @blue;
+}
+.orange {
+    background-color: @orange;
+}
+.yellow {
+    background-color: @yellow;
+}
+
+.container {
+    position: absolute;
+    width: 100%;
+    top: 82px;
+    bottom: 82px;
+    padding: 0;
+    margin: 0;
+}
+
+.wrappy {
+    position: absolute;
+    display: inline;
+    color: @yellow;
+    font-size: 30px;
+    line-height: 30px;
+    bottom: 20px;
+    right: 20px;
+    pointer-events: none;
+}
+
+.button {
+    display: block;
+    margin: 0 auto;
+    border-radius: 50px;
+    border-width: 0;
+    color: white;
+    padding: 26px;
+    font-size: 30px;
+    text-shadow: 3px 3px 2px rgba(0, 0, 0, 1);
+    transition: box-shadow 150ms ease-in;
+
+    &:focus {
+        outline:none;
+    }
+
+    &:hover {
+        box-shadow: 10px 10px 0 #1a2434;
+        transition: box-shadow 150ms ease-in;
+    }
+
+    &:active {
+        position: relative;
+        top: 1px;
+        left: 1px;
+    }
+}
+
+.toolbar {
+    left: 0;
+    right: 0;
+    background-color: @green;
+
+    &-bottom {
+        position: absolute;
+        bottom: 0;
+    }
+}
+
+/* About tooltip */
+.about {
+
+    &-drop-down {
+        display: inline-block;
+        float: right;
+    }
+
+    &-menu {
+
+        &-button {
+            color: white;
+            background-color: @green;
+            border: 0;
+            padding: 20px 25px;
+            font-size: 30px;
+            transition: background-color 150ms ease-in;
+
+            &-selected {
+                background-color: @red;
+                transition: background-color 150ms ease-in;
+            }
+
+            &:hover {
+                background-color: @red;
+                transition: background-color 150ms ease-in;
+            }
+        }
+
+        &-popup {
+            display: inline-block;
+            background-color: @red;
+            border-radius: 10px 10px 10px 10px;
+            -moz-border-radius: 10px 10px 10px 10px;
+            -webkit-border-radius: 10px 10px 10px 10px;
+            padding: 10px 0 10px 0;
+            opacity: 0;
+            box-shadow: 15px 15px 0 rgba(0, 0, 0, 0.35);
+            max-width: 640px;
+
+            &.showing {
+                opacity: 1;
+                transition:opacity 150ms ease-in;
+            }
+        }
+
+        &-item {
+            font-weight: normal;
+            padding: 20px 30px;
+            color: white;
+            background-color: @red;
+            font-size: 30px;
+
+            a {
+                color: @yellow;
+            }
+
+            &-title {
+                font-weight: normal;
+                font-style: normal;
+                margin-bottom: 20px;
+            }
+            &-library {
+                font-style: italic;
+                margin-bottom: 20px;
+            }
+            &-copyright {
+                margin-top: 20px;
+            }
+        }
+    }
+}

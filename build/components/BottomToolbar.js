@@ -20,11 +20,11 @@ var _items = require('./../data/items1.js');
 
 var _items2 = require('./../data/items2.js');
 
-var _helpItems = require('./../data/helpItems.js');
+var _aboutItems = require('./../data/aboutItems.js');
 
-var _HelpRenderer = require('./../renderers/HelpRenderer.js');
+var _AboutRenderer = require('./../renderers/AboutRenderer.js');
 
-var _HelpRenderer2 = _interopRequireDefault(_HelpRenderer);
+var _AboutRenderer2 = _interopRequireDefault(_AboutRenderer);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -50,7 +50,7 @@ var BottomToolbar = function (_Component) {
                 return ['ne'];
             },
                 renderers = {
-                'help': _HelpRenderer2.default
+                'about': _AboutRenderer2.default
             };
 
             /* Bottom toolbar - let's not toggle these buttons */
@@ -71,7 +71,7 @@ var BottomToolbar = function (_Component) {
                 _react2.default.createElement(
                     _DropdownMenu2.default,
                     {
-                        items: _helpItems.helpItems,
+                        items: _aboutItems.aboutItems,
                         classPrefix: 'about-',
                         toggleMode: false,
                         openOnMouseOver: true,
