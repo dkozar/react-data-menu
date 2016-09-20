@@ -42,5 +42,7 @@ export default class Aligner {
             target.style.left = (position.x + offset.x) + 'px';
             target.style.top = (position.y + offset.y) + 'px';
         }
+
+        return position;
     }
 }

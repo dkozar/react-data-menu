@@ -60,9 +60,11 @@ var MenuPopup = function (_Component) {
         key: 'render',
         value: function render() {
             var index = 0,
-                self = this,
+                classPrefix = this.props.classPrefix,
+                selectedIndex = this.props.selectedIndex,
                 popupFactory = this.props.popupFactory,
                 itemFactory = this.props.itemFactory,
+                self = this,
                 key,
                 children,
                 menuItem,
@@ -73,8 +75,8 @@ var MenuPopup = function (_Component) {
 
                 key = ITEM_ID_PREFIX + index;
 
-                if (self.props.selectedIndex === index) {
-                    classes[self.props.classPrefix + 'menu-item-selected'] = true;
+                if (selectedIndex === index) {
+                    classes[classPrefix + 'menu-item-selected'] = true;
                 }
 
                 data = self.expandDescriptor(data);
@@ -104,6 +106,9 @@ var MenuPopup = function (_Component) {
     }, {
         key: 'componentDidMount',
         value: function componentDidMount() {
+            var classPrefix = this.props.classPrefix,
+                position;
+
             // measure DOM
             if (!this.dom) {
                 this.dom = _reactDom2.default.findDOMNode(this);
@@ -111,7 +116,14 @@ var MenuPopup = function (_Component) {
             }
 
             // align
-            this.aligner.align(this.dom, this.props.alignTo, this.props.hints, this.props.useOffset ? this.dom.firstChild : null);
+            position = this.aligner.align(this.dom, this.props.alignTo, this.props.hints, this.props.useOffset ? this.dom.firstChild : null);
+
+            if (!position.fitsX) {
+                this.dom.className += ' ' + classPrefix + 'menu-popup-overflow-x';
+            }
+            if (!position.fitsY) {
+                this.dom.className += ' ' + classPrefix + 'menu-popup-overflow-y';
+            }
 
             this.setState({
                 showing: true

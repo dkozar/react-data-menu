@@ -21,10 +21,22 @@ export default class RectAlign {
     }
 
     getPosition(hints) {
-        var position, tries = [];
+        var tries = [], 
+            success = {
+                x: -1,
+                y: -1
+            },
+            position;
+
         hints.find(function(hint) {
             tries.push(hint);
             position = this.tryHint(hint);
+            if (position.fitsX && success.x === -1) {
+                success.x = position.x;
+            }
+            if (position.fitsY && success.y === -1) {
+                success.y = position.y;
+            }
             if (position.fits) {
                 return true;
             }
@@ -32,11 +44,43 @@ export default class RectAlign {
         }, this);
 
         if (!position || !position.fits) {
-            // settle at first one
-            position = this.tryHint(hints[0]);
+            position = this.getFallbackPosition(position, success, hints);
         }
         //console.log('Final: ' + position.direction + ' (tries: ' + tries.toString() + ' of ' +  hints.toString() + ')');
         return position;
+    }
+
+    getFallbackPosition(position, success, hints) {
+        var aligner = this.aligner,
+            target = this.target,
+            preferredPosition, position, closerToLeft, closerToTop, left, right, top, bottom;
+
+        // doesn't fit in any direction
+        // settle closest to the first hint
+        preferredPosition = this.tryHint(hints[0]);
+        if (!preferredPosition.fitsX) {
+            if (success.x !== -1) {
+                preferredPosition.x = success.x;
+            } else {
+                left = target.body.left;
+                right = aligner.body.width - target.body.width;
+                closerToLeft = left < right;
+                preferredPosition.x = closerToLeft ? 0 : (aligner.body.width - target.body.width);
+            }            
+        }
+        if (!preferredPosition.fitsY) {
+            if (success.y !== -1) {
+                preferredPosition.y = success.y;
+            } else {
+                top = target.body.top;
+                bottom = aligner.body.height - target.body.height;
+                closerToTop = top < bottom;
+                preferredPosition.y = closerToTop ? 0 : (aligner.body.height - target.body.height);
+            }
+        }
+
+        //console.log('Final: ' + position.direction + ' (tries: ' + tries.toString() + ' of ' +  hints.toString() + ')');
+        return preferredPosition;
     }
 
     tryHint(hint) {
@@ -45,7 +89,7 @@ export default class RectAlign {
             offset = {x: target.body.left - target.handle.left, y: target.body.top - target.handle.top},
             side = hint[0],
             position = hint[1],
-            x, y, fits;
+            x, y, fitsX, fitsY, fits;
 
         switch (side) {
             case RectAlignSide.EAST:
@@ -105,12 +149,15 @@ export default class RectAlign {
         x += offset.x;
         y += offset.y;
 
-        fits = x >= 0 && (x + target.body.width < aligner.body.width) &&
-            y >= 0 && (y + target.body.height < aligner.body.height);
+        fitsX = x >= 0 && (x + target.body.width <= aligner.body.width); 
+        fitsY = y >= 0 && (y + target.body.height <= aligner.body.height); 
+        fits = fitsX && fitsY;
 
         return {
             x,
             y,
+            fitsX,
+            fitsY,
             fits,
             direction: hint
         }
