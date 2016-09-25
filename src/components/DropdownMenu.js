@@ -43,6 +43,7 @@ export default class DropdownMenu extends Component {
     onButtonClick(e) {
         e.preventDefault();
         if (!ClickUtil.isGhostClickEvent(e)) {
+            this.isTouch = false;
             this.openMenu();
         }
     }
@@ -52,16 +53,23 @@ export default class DropdownMenu extends Component {
     }
 
     onButtonTouchStart() {
+        this.isTouch = true;
         this.openMenu();
     }
 
-    onButtonMouseEnter() {
+    onButtonMouseEnter(e) {
+        if (ClickUtil.isGhostClickEvent(e.nativeEvent)) {
+            return;
+        }
         if (this.props.openOnMouseOver) {
             _.delay(this.openMenu.bind(this), this.props.mouseEnterDelay);
         }
     }
 
-    onButtonMouseLeave() {
+    onButtonMouseLeave(e) {
+        if (ClickUtil.isGhostClickEvent(e.nativeEvent)) {
+            return;
+        }
         if (this.props.closeOnMouseOut) {
             _.delay(this.closeMenu.bind(this), this.props.mouseLeaveDelay);
         }
@@ -74,7 +82,9 @@ export default class DropdownMenu extends Component {
         // if we're in toggle mode, register button as toggle part,
         // clicking or tapping the toggle parts produces 'onClickOutside' (so if the menu is open, clicking the button will close it)
         // however, tap-and-hold won't produce 'onContextMenu' (which would close the menu)
-        MenuEmitter.getInstance().registerPart(this.buttonElement, this.props.toggleMode);
+        var isToggle = this.props.toggleMode && !this.isTouch; // do not use toggle behaviour with touch, because it is currently problematic for MenuEmitter processing logic
+        
+        MenuEmitter.getInstance().registerPart(this.buttonElement, isToggle);
         this.props.onOpen();
     }
 

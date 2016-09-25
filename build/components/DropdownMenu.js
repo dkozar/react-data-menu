@@ -91,6 +91,7 @@ var DropdownMenu = function (_Component) {
         value: function onButtonClick(e) {
             e.preventDefault();
             if (!_click2.default.isGhostClickEvent(e)) {
+                this.isTouch = false;
                 this.openMenu();
             }
         }
@@ -102,18 +103,25 @@ var DropdownMenu = function (_Component) {
     }, {
         key: 'onButtonTouchStart',
         value: function onButtonTouchStart() {
+            this.isTouch = true;
             this.openMenu();
         }
     }, {
         key: 'onButtonMouseEnter',
-        value: function onButtonMouseEnter() {
+        value: function onButtonMouseEnter(e) {
+            if (_click2.default.isGhostClickEvent(e.nativeEvent)) {
+                return;
+            }
             if (this.props.openOnMouseOver) {
                 _lodash2.default.delay(this.openMenu.bind(this), this.props.mouseEnterDelay);
             }
         }
     }, {
         key: 'onButtonMouseLeave',
-        value: function onButtonMouseLeave() {
+        value: function onButtonMouseLeave(e) {
+            if (_click2.default.isGhostClickEvent(e.nativeEvent)) {
+                return;
+            }
             if (this.props.closeOnMouseOut) {
                 _lodash2.default.delay(this.closeMenu.bind(this), this.props.mouseLeaveDelay);
             }
@@ -129,7 +137,9 @@ var DropdownMenu = function (_Component) {
             // if we're in toggle mode, register button as toggle part,
             // clicking or tapping the toggle parts produces 'onClickOutside' (so if the menu is open, clicking the button will close it)
             // however, tap-and-hold won't produce 'onContextMenu' (which would close the menu)
-            _MenuEmitter2.default.getInstance().registerPart(this.buttonElement, this.props.toggleMode);
+            var isToggle = this.props.toggleMode && !this.isTouch; // do not use toggle behaviour with touch, because it is currently problematic for MenuEmitter processing logic
+
+            _MenuEmitter2.default.getInstance().registerPart(this.buttonElement, isToggle);
             this.props.onOpen();
         }
     }, {
