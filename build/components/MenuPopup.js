@@ -118,11 +118,19 @@ var MenuPopup = function (_Component) {
             // align
             position = this.aligner.align(this.dom, this.props.alignTo, this.props.hints, this.props.useOffset ? this.dom.firstChild : null);
 
+            // bake some of the position information into popups' className
             if (!position.fitsX) {
+                // if popup doesn't horizontally fit the screen, add this class name
+                // this could be used to introduce scroll etc.
                 this.dom.className += ' ' + classPrefix + 'menu-popup-overflow-x';
             }
             if (!position.fitsY) {
+                // if popup doesn't vertically fit the screen, add this class name
                 this.dom.className += ' ' + classPrefix + 'menu-popup-overflow-y';
+            }
+            if (position.direction) {
+                // styling different positions ('menu-popup-align-es', 'menu-popup-align-se' etc.)
+                this.dom.className += ' ' + classPrefix + 'menu-popup-align-' + position.direction;
             }
 
             this.setState({
