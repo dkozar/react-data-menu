@@ -2,7 +2,7 @@ import _ from 'lodash';
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import Aligner from './../util/Aligner.js';
-import HoverData from './../util/HoverData.js';
+import HoverData from './../util/hoverData.js';
 
 export const ITEM_ID_PREFIX = 'menu-item-';
 
