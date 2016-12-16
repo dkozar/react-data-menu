@@ -33,7 +33,7 @@ var Button = exports.Button = function (_Component) {
     function Button() {
         _classCallCheck(this, Button);
 
-        return _possibleConstructorReturn(this, (Button.__proto__ || Object.getPrototypeOf(Button)).apply(this, arguments));
+        return _possibleConstructorReturn(this, Object.getPrototypeOf(Button).apply(this, arguments));
     }
 
     _createClass(Button, [{

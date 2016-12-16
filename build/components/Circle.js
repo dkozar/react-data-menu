@@ -33,7 +33,7 @@ var Circle = function (_Component) {
     function Circle() {
         _classCallCheck(this, Circle);
 
-        return _possibleConstructorReturn(this, (Circle.__proto__ || Object.getPrototypeOf(Circle)).apply(this, arguments));
+        return _possibleConstructorReturn(this, Object.getPrototypeOf(Circle).apply(this, arguments));
     }
 
     _createClass(Circle, [{

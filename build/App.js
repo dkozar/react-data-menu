@@ -96,10 +96,11 @@ var App = exports.App = function (_Component) {
     _inherits(App, _Component);
 
     //<editor-fold desc="Constructor">
+
     function App(props) {
         _classCallCheck(this, App);
 
-        var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(App).call(this, props));
 
         _this.state = {
             contextMenuVisible: false,
@@ -186,8 +187,8 @@ var App = exports.App = function (_Component) {
                     if (ray.e.shiftKey) {
                         self.executeCommand('clear'); // Alt + Shift + click = clear
                     } else if (ray.intersects(canvasNode)) {
-                        self.executeCommand('new-circle'); // Alt + click = new circle
-                    }
+                            self.executeCommand('new-circle'); // Alt + click = new circle
+                        }
                 }
             });
         }

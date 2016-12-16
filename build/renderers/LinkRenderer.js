@@ -33,7 +33,7 @@ var LinkRenderer = function (_Component) {
     function LinkRenderer() {
         _classCallCheck(this, LinkRenderer);
 
-        return _possibleConstructorReturn(this, (LinkRenderer.__proto__ || Object.getPrototypeOf(LinkRenderer)).apply(this, arguments));
+        return _possibleConstructorReturn(this, Object.getPrototypeOf(LinkRenderer).apply(this, arguments));
     }
 
     _createClass(LinkRenderer, [{

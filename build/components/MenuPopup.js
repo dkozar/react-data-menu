@@ -23,9 +23,9 @@ var _Aligner = require('./../util/Aligner.js');
 
 var _Aligner2 = _interopRequireDefault(_Aligner);
 
-var _hoverData = require('./../util/hoverData.js');
+var _HoverData = require('./../util/HoverData.js');
 
-var _hoverData2 = _interopRequireDefault(_hoverData);
+var _HoverData2 = _interopRequireDefault(_HoverData);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -47,7 +47,7 @@ var MenuPopup = function (_Component) {
     function MenuPopup(props) {
         _classCallCheck(this, MenuPopup);
 
-        var _this = _possibleConstructorReturn(this, (MenuPopup.__proto__ || Object.getPrototypeOf(MenuPopup)).call(this, props));
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(MenuPopup).call(this, props));
 
         _this.aligner = _this.props.aligner;
         _this.state = {

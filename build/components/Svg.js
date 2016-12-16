@@ -24,7 +24,7 @@ var Svg = function (_Component) {
     function Svg() {
         _classCallCheck(this, Svg);
 
-        return _possibleConstructorReturn(this, (Svg.__proto__ || Object.getPrototypeOf(Svg)).apply(this, arguments));
+        return _possibleConstructorReturn(this, Object.getPrototypeOf(Svg).apply(this, arguments));
     }
 
     _createClass(Svg, [{

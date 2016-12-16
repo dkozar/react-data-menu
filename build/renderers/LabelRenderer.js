@@ -31,7 +31,7 @@ var Label = exports.Label = function (_Component) {
     function Label() {
         _classCallCheck(this, Label);
 
-        return _possibleConstructorReturn(this, (Label.__proto__ || Object.getPrototypeOf(Label)).apply(this, arguments));
+        return _possibleConstructorReturn(this, Object.getPrototypeOf(Label).apply(this, arguments));
     }
 
     _createClass(Label, [{

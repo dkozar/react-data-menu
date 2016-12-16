@@ -82,10 +82,11 @@ var Menu = function (_Component) {
     _inherits(Menu, _Component);
 
     //<editor-fold desc="Constructor">
+
     function Menu(props) {
         _classCallCheck(this, Menu);
 
-        var _this = _possibleConstructorReturn(this, (Menu.__proto__ || Object.getPrototypeOf(Menu)).call(this, props));
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Menu).call(this, props));
 
         _this.onItemClick = _this.onItemClick.bind(_this);
         _this.closeMenu = _this.closeMenu.bind(_this);

@@ -31,7 +31,7 @@ var Separator = exports.Separator = function (_Component) {
     function Separator() {
         _classCallCheck(this, Separator);
 
-        return _possibleConstructorReturn(this, (Separator.__proto__ || Object.getPrototypeOf(Separator)).apply(this, arguments));
+        return _possibleConstructorReturn(this, Object.getPrototypeOf(Separator).apply(this, arguments));
     }
 
     _createClass(Separator, [{
