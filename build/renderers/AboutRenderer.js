@@ -24,7 +24,7 @@ var AboutRenderer = function (_Component) {
     function AboutRenderer() {
         _classCallCheck(this, AboutRenderer);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(AboutRenderer).apply(this, arguments));
+        return _possibleConstructorReturn(this, (AboutRenderer.__proto__ || Object.getPrototypeOf(AboutRenderer)).apply(this, arguments));
     }
 
     _createClass(AboutRenderer, [{
@@ -68,7 +68,7 @@ var AboutRenderer = function (_Component) {
                         'a',
                         { href: data.copyrightUrl, target: '_blank' },
                         _react2.default.createElement('i', { className: 'fa fa-copyright' }),
-                        ' ',
+                        '\xA0',
                         data.copyright
                     )
                 )

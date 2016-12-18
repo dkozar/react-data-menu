@@ -40,7 +40,7 @@ var BottomToolbar = function (_Component) {
     function BottomToolbar() {
         _classCallCheck(this, BottomToolbar);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(BottomToolbar).apply(this, arguments));
+        return _possibleConstructorReturn(this, (BottomToolbar.__proto__ || Object.getPrototypeOf(BottomToolbar)).apply(this, arguments));
     }
 
     _createClass(BottomToolbar, [{

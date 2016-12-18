@@ -47,7 +47,7 @@ var MenuPopup = function (_Component) {
     function MenuPopup(props) {
         _classCallCheck(this, MenuPopup);
 
-        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(MenuPopup).call(this, props));
+        var _this = _possibleConstructorReturn(this, (MenuPopup.__proto__ || Object.getPrototypeOf(MenuPopup)).call(this, props));
 
         _this.aligner = _this.props.aligner;
         _this.state = {

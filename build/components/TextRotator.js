@@ -30,7 +30,7 @@ var TextRotator = function (_Component) {
     function TextRotator(props) {
         _classCallCheck(this, TextRotator);
 
-        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(TextRotator).call(this, props));
+        var _this = _possibleConstructorReturn(this, (TextRotator.__proto__ || Object.getPrototypeOf(TextRotator)).call(this, props));
 
         _this.state = {
             index: 0,

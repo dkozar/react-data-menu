@@ -88,7 +88,7 @@ var MenuEmitter = function (_EmitterPlug) {
     function MenuEmitter() {
         _classCallCheck(this, MenuEmitter);
 
-        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(MenuEmitter).call(this));
+        var _this = _possibleConstructorReturn(this, (MenuEmitter.__proto__ || Object.getPrototypeOf(MenuEmitter)).call(this));
 
         _this.dispatchInteraction = _this.dispatchInteraction.bind(_this);
         _this.dispatchClose = _this.dispatchClose.bind(_this);
@@ -229,13 +229,13 @@ var MenuEmitter = function (_EmitterPlug) {
             if (_click2.default.isGhostClick(ray)) {
                 ray.preventDefault(); // avoid ghost 'contextmenu' event on touch devices
             } else {
-                    isInside = isMenuPartClicked(ray, false);
-                    if (isInside) {
-                        this.dispatchInteraction(MenuEmitter.ON_CONTEXT_MENU_INSIDE, ray);
-                    } else {
-                        this.dispatchInteraction(MenuEmitter.ON_CONTEXT_MENU_OUTSIDE, ray);
-                    }
+                isInside = isMenuPartClicked(ray, false);
+                if (isInside) {
+                    this.dispatchInteraction(MenuEmitter.ON_CONTEXT_MENU_INSIDE, ray);
+                } else {
+                    this.dispatchInteraction(MenuEmitter.ON_CONTEXT_MENU_OUTSIDE, ray);
                 }
+            }
         }
     }, {
         key: 'onMouseOver',

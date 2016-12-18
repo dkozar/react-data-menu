@@ -60,11 +60,10 @@ var DropdownMenu = function (_Component) {
     _inherits(DropdownMenu, _Component);
 
     //<editor-fold desc="Constructor">
-
     function DropdownMenu(props) {
         _classCallCheck(this, DropdownMenu);
 
-        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(DropdownMenu).call(this, props));
+        var _this = _possibleConstructorReturn(this, (DropdownMenu.__proto__ || Object.getPrototypeOf(DropdownMenu)).call(this, props));
 
         _this.onButtonClick = _this.onButtonClick.bind(_this);
         _this.onButtonTouchStart = _this.onButtonTouchStart.bind(_this);

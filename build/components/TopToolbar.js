@@ -34,7 +34,7 @@ var TopToolbar = function (_Component) {
     function TopToolbar() {
         _classCallCheck(this, TopToolbar);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(TopToolbar).apply(this, arguments));
+        return _possibleConstructorReturn(this, (TopToolbar.__proto__ || Object.getPrototypeOf(TopToolbar)).apply(this, arguments));
     }
 
     _createClass(TopToolbar, [{
@@ -50,7 +50,7 @@ var TopToolbar = function (_Component) {
                         'button',
                         { className: 'menu-button' },
                         _react2.default.createElement('i', { className: 'fa fa-list-ul' }),
-                        '  React Data Menu'
+                        '\xA0\xA0React Data Menu'
                     )
                 ),
                 _react2.default.createElement(_DropdownMenu2.default, _extends({ buttonText: 'Menu 1', items: _items2.items2 }, this.props)),
