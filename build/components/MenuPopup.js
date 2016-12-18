@@ -23,9 +23,9 @@ var _Aligner = require('./../util/Aligner.js');
 
 var _Aligner2 = _interopRequireDefault(_Aligner);
 
-var _HoverData = require('./../util/HoverData.js');
+var _hoverData = require('./../util/hoverData.js');
 
-var _HoverData2 = _interopRequireDefault(_HoverData);
+var _hoverData2 = _interopRequireDefault(_hoverData);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
