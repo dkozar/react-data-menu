@@ -1,4 +1,4 @@
-import { COLORS } from './colors';
+import { COLORS } from './Colors';
 
 const TOOLBAR_HEIGHT = 82;
 

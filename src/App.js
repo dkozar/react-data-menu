@@ -16,7 +16,7 @@ import TopToolbar from './components/TopToolbar.js';
 
 var Emitter = require('raycast-dom').Emitter.default;
 
-import { PURPLE, ORANGE } from './util/colors';
+import { PURPLE, ORANGE } from './util/Colors';
 
 require('./styles/main.less');
 require('./styles/menu.less');
