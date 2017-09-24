@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _colors = require('./colors');
+var _Colors = require('./Colors');
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -24,7 +24,7 @@ function sendToBack(circles, circle, current) {
 
 function newCircle(position, circles, yOrigin) {
     var r = Math.floor(Math.random() * 150) + 50,
-        color = _colors.COLORS[Math.floor(Math.random() * _colors.COLORS.length)],
+        color = _Colors.COLORS[Math.floor(Math.random() * _Colors.COLORS.length)],
         circle = {
         x: position.x, y: position.y - yOrigin, r: r, color: color
     };

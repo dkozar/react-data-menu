@@ -65,7 +65,7 @@ var _TopToolbar = require('./components/TopToolbar.js');
 
 var _TopToolbar2 = _interopRequireDefault(_TopToolbar);
 
-var _colors = require('./util/colors');
+var _Colors = require('./util/Colors');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -105,9 +105,9 @@ var App = exports.App = function (_Component) {
             contextMenuVisible: false,
             openOnMouseOver: false, // if true, drop-down menu will open on mouse over
             circles: [{
-                x: 200, y: 200, r: 100, color: _colors.PURPLE
+                x: 200, y: 200, r: 100, color: _Colors.PURPLE
             }, {
-                x: 800, y: 500, r: 150, color: _colors.ORANGE
+                x: 800, y: 500, r: 150, color: _Colors.ORANGE
             }],
             hoveredCircleIndex: -1,
             selectedCircleIndex: -1
