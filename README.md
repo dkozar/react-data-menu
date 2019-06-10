@@ -10,7 +10,7 @@ Hints-based aligning with custom renderers and factories.
 
 Never clipped by other components or screen edges.
 
-[![Data Menu!](http://dankokozar.com/images/react-data-menu.png)](http://dkozar.github.io/react-data-menu/)
+[![Data Menu!](./images/react-data-menu.png)](http://dkozar.github.io/react-data-menu/)
 
 ## :gear: Maintainance
 
