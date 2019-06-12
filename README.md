@@ -12,10 +12,6 @@ Never clipped by other components or screen edges.
 
 [![Data Menu!](./images/react-data-menu.png)](http://dkozar.github.io/react-data-menu/)
 
-## :gear: Maintainance
-
-React 0.14: https://github.com/dkozar/react-data-menu/commits/react-0.14
-
 ## :tv: Demo
 
 http://dkozar.github.io/react-data-menu/
@@ -169,6 +165,10 @@ npm run test
 ```
 
 Runs the tests.
+
+## :gear: Maintainance
+
+React 0.14: https://github.com/dkozar/react-data-menu/commits/react-0.14
 
 ## :thumbsup: Thanks to:
 
