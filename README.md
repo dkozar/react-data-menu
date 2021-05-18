@@ -42,7 +42,7 @@ export class App extends Component {
                 x: 100,
                 y: 100
             },
-            items: {
+            items: [{
                 type: 'label',
                 title: 'Menu Popup 1'
             }, '-', {
