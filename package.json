@@ -64,7 +64,7 @@
     "karma-webpack": "^1.7.0",
     "less": "^2.7.1",
     "less-loader": "^2.2.3",
-    "mocha": "^2.4.5",
+    "mocha": "^10.1.0",
     "react-addons-test-utils": "^15.4.1",
     "react-wrappy-text": "^1.1.1",
     "rimraf": "^2.4.3",
